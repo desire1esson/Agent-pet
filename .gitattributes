@@ -1,0 +1,22 @@
+# Git attributes —— 行尾统一
+* text=auto
+
+# 文档/源码：LF（仓库内）
+*.md text eol=lf
+*.ts text eol=lf
+*.vue text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Windows 脚本：CRLF（cmd 必需）
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# 二进制
+*.png binary
+*.ico binary
+*.icns binary

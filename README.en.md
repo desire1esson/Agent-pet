@@ -71,6 +71,7 @@ Zero is not "used" — it lives in the corner of your screen:
 - ⚡ Dangerous-operation approval (agent requests → Zero transforms + confirmation card)
 - 🛠 Tool-call working state (Zero "watches you work")
 - 🔌 Auto-reconnect (exponential backoff)
+- 🔄 **Launcher script** (`zero-launcher.cmd`) — set token + start serve with one click (Hermes helper)
 - 📝 Session history (local file storage + one-click recall)
 - 🎭 Life animations: blink / yawn / scratch / stretch / walk / hide-at-edge / sleep Zzz
 - 🎩 Easter egg: say "dance" → Zero's concert (moonwalk / 45° lean / ribbon finale)
@@ -127,6 +128,16 @@ Configure without rebuilding — edit `zero-pet/config.json` in the app data dir
 ```
 
 Restart the app to apply. **Priority**: runtime config.json > build-time `VITE_HERMES_*` > defaults (127.0.0.1:9119).
+
+**Don't want to hand-write JSON? Use the launcher script** (`zero-launcher.cmd` in the repo root, double-click):
+
+```
+1. Prompts for your token → auto-generates/updates config.json (no hand-writing)
+2. Detects serve not running → starts `hermes serve` with the token
+3. Tells you when ready → open the companion and chat
+```
+
+> The launcher is a **Hermes-scenario helper** — users of other kernels don't need it (start your own backend; the companion is pure-connect).
 
 ### Other agent kernels
 

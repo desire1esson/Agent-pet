@@ -18,8 +18,15 @@
 
 ### 架构
 - 动画引擎（数据驱动触发 DSL）
+- 行为注册表（registerEffect——新行为一行注册，不碰核心）
 - 事件总线（agent/用户/时间三类事件解耦）
 - 适配器架构（内核可扩展）
+- 运行时配置（config.json：host/port/token——预编译用户可配置）
+
+### 工具
+- zero-launcher.cmd（启动器：配 token + 拉起 Hermes serve——随安装包分发）
+- 变身立绘修复（danger 形态渲染像素战士）
+- 称谓统一（桌面形象）
 
 ### 文档
 - SPRITE_CONTRACT / ANIMATION / ZERO_NOTE / prototypes
