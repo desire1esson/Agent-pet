@@ -10,19 +10,6 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "title": "zero-pet",
-        "width": 200,
-        "height": 230,
-        "transparent": true,
-        "decorations": false,
-        "alwaysOnTop": true,
-        "resizable": false,
-        "skipTaskbar": true,
-        "shadow": false
-      }
-    ],
     "security": {
       "csp": null
     }

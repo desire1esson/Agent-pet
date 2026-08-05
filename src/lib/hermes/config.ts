@@ -31,12 +31,12 @@ let runtimeLoaded = false;
 
 async function loadRuntimeConfig(): Promise<RuntimeConfig> {
   if (runtimeLoaded) return runtimeCache ?? {};
-  runtimeLoaded = true;
   try {
     const { invoke } = await import("@tauri-apps/api/core");
     runtimeCache = await invoke<RuntimeConfig>("load_runtime_config");
+    runtimeLoaded = true; // 只在成功时缓存——失败不缓存，下次连接重试
   } catch {
-    runtimeCache = {};
+    // IPC 未就绪/失败 → 不缓存，下次重连再试
   }
   return runtimeCache ?? {};
 }
@@ -49,10 +49,11 @@ export async function resolveConfig(): Promise<HermesConfig> {
   const token = rt.token || import.meta.env.VITE_HERMES_TOKEN || "";
 
   return {
-    // 无 token 时不带 token 参数
+    // WS 走本地代理 9120（绕过 Hermes CORS 白名单——代理转发到 Hermes 9119）
+    // token 透传：代理转发 URL 里的 ?token= 给 Hermes
     wsUrl: token
-      ? `ws://${host}:${port}/api/ws?token=${encodeURIComponent(token)}`
-      : `ws://${host}:${port}/api/ws`,
+      ? `ws://127.0.0.1:9120/api/ws?token=${encodeURIComponent(token)}`
+      : `ws://127.0.0.1:9120/api/ws`,
     statusUrl: `http://${host}:${port}/api/status`,
     connectTimeout: 5000,
     minVersion: "0.18", // 低于此版本提示升级（协议不稳定期）
