@@ -49,11 +49,11 @@ export async function resolveConfig(): Promise<HermesConfig> {
   const token = rt.token || import.meta.env.VITE_HERMES_TOKEN || "";
 
   return {
-    // WS 走本地代理 9120（绕过 Hermes CORS 白名单——代理转发到 Hermes 9119）
-    // token 透传：代理转发 URL 里的 ?token= 给 Hermes
+    // WS 直连地址（Rust WS 客户端经 Tauri IPC 连接——Rust 无 Origin → 绕过 CORS）
+    // token 在 URL 透传给 serve（serve 认证用 ?token=）
     wsUrl: token
-      ? `ws://127.0.0.1:9120/api/ws?token=${encodeURIComponent(token)}`
-      : `ws://127.0.0.1:9120/api/ws`,
+      ? `ws://${host}:${port}/api/ws?token=${encodeURIComponent(token)}`
+      : `ws://${host}:${port}/api/ws`,
     statusUrl: `http://${host}:${port}/api/status`,
     connectTimeout: 5000,
     minVersion: "0.18", // 低于此版本提示升级（协议不稳定期）

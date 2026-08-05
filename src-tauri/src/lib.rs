@@ -1,17 +1,25 @@
 // zero-pet Rust 壳
-// - move_window: 前端拖拽时移动窗口
-// - snap_to_corner: 窗口吸附到屏幕右下角（桌宠默认位置）
-// - ws_proxy: 本地 WS 代理（127.0.0.1:9120 → Hermes 9119）
-//   浏览器 WS 会带页面 Origin（http://tauri.localhost），Hermes 只接受 localhost/127.0.0.1
-//   → 前端连本地代理（不校验 Origin），代理去掉 Origin 转发给 Hermes——绕开 CORS 白名单
-//   ⚠ 本文件 CRLF 字符串用 \r\n（write_file 全量重写，勿用 patch——patch 会破坏转义）
+// - move_window / snap_to_corner: 窗口控制
+// - ws_connect / ws_send / ws_close: Rust WS 客户端桥（无 Origin——绕过 Hermes CORS）
+//   前端 invoke("ws_connect", url) → Rust 连 WS（tungstenite 客户端不带 Origin → CORS 放行）
+//   接收循环 → emit("ws:message") → 前端监听
+//   断连 → emit("ws:status", "disconnected") → 前端触发重连
+//   前端 invoke("ws_send", msg) → 发送 JSON-RPC
+// ⚠ 本文件有 \r\n 字符串转义时只用 write_file 全量重写，勿用 patch
 
-use tauri::PhysicalPosition;
+use tauri::{Emitter, PhysicalPosition};
+
+type WsStream =
+    tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+type WsSink = futures_util::stream::SplitSink<WsStream, tokio_tungstenite::tungstenite::Message>;
+
+struct WsState(tokio::sync::Mutex<Option<WsSink>>);
 
 #[tauri::command]
 fn move_window(window: tauri::Window, x: i32, y: i32) {
     let _ = window.set_position(PhysicalPosition::new(x, y));
 }
+
 #[tauri::command]
 fn snap_to_corner(window: tauri::Window) {
     if let Some(monitor) = window.current_monitor().ok().flatten() {
@@ -23,138 +31,51 @@ fn snap_to_corner(window: tauri::Window) {
     }
 }
 
-/// WS 代理：监听 127.0.0.1:9120，转发到 Hermes（127.0.0.1:9119，token 透传）
-fn start_ws_proxy() {
-    std::thread::spawn(|| {
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_io()
-            .build()
-            .expect("proxy runtime");
-        rt.block_on(ws_proxy_loop());
+/// 连接 Hermes WS（无 Origin——CORS 放行）；接收循环 emit 消息/断连状态
+#[tauri::command]
+async fn ws_connect(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    use futures_util::StreamExt;
+    let (ws, _resp) = tokio_tungstenite::connect_async(url.as_str())
+        .await
+        .map_err(|e| e.to_string())?;
+    let (sink, mut stream) = ws.split();
+    let app2 = app.clone();
+    tauri::async_runtime::spawn(async move {
+        while let Some(Ok(msg)) = stream.next().await {
+            if let tokio_tungstenite::tungstenite::Message::Text(t) = msg {
+                let _ = app2.emit("ws:message", t.to_string());
+            }
+        }
+        let _ = app2.emit("ws:status", "disconnected");
     });
+    *app.state::<WsState>().0.lock().await = Some(sink);
+    Ok(())
 }
 
-async fn ws_proxy_loop() {
-    use futures_util::{SinkExt, StreamExt};
-    use tokio::net::{TcpListener, TcpStream};
+/// 发送 JSON-RPC 消息
+#[tauri::command]
+async fn ws_send(app: tauri::AppHandle, msg: String) -> Result<(), String> {
+    use futures_util::SinkExt;
+    let state = app.state::<WsState>();
+    let mut guard = state.0.lock().await;
+    let sink = guard.as_mut().ok_or("ws not connected")?;
+    sink.send(tokio_tungstenite::tungstenite::Message::Text(msg.into()))
+        .await
+        .map_err(|e| e.to_string())
+}
 
-    let listener = match TcpListener::bind("127.0.0.1:9120").await {
-        Ok(l) => l,
-        Err(e) => {
-            eprintln!("[zero-pet] ws_proxy bind 9120 failed: {e}");
-            return;
-        }
-    };
-    loop {
-        let (mut client, _) = match listener.accept().await {
-            Ok(c) => c,
-            Err(_) => continue,
-        };
-        tokio::spawn(async move {
-            // 1. 读客户端 HTTP 升级请求（拿 URL/token）
-            let mut buf = vec![0u8; 8192];
-            let n = match tokio::io::AsyncReadExt::read(&mut client, &mut buf).await {
-                Ok(n) if n > 0 => n,
-                _ => return,
-            };
-            let head = String::from_utf8_lossy(&buf[..n]).to_string();
-            let req_line = head.lines().next().unwrap_or("").to_string();
-            let path = req_line
-                .split_whitespace()
-                .nth(1)
-                .unwrap_or("/api/ws")
-                .to_string();
-
-            // 2. 连 Hermes
-            let mut upstream = match TcpStream::connect("127.0.0.1:9119").await {
-                Ok(s) => s,
-                Err(_) => return,
-            };
-
-            // 3. 重建请求头（去 Origin/Host/sec-fetch-，跳过空行，Host 指向 Hermes）
-            let mut fwd = format!("GET {path} HTTP/1.1\r\n");
-            for line in head.lines().skip(1) {
-                let line = line.trim_end_matches('\r');
-                if line.is_empty() {
-                    continue; // 客户端请求头的结束空行——跳过
-                }
-                let lower = line.to_lowercase();
-                if lower.starts_with("host:")
-                    || lower.starts_with("origin:")
-                    || lower.starts_with("sec-fetch-")
-                {
-                    continue;
-                }
-                fwd.push_str(line);
-                fwd.push_str("\r\n");
-            }
-            fwd.push_str("Host: 127.0.0.1:9119\r\n");
-            fwd.push_str("\r\n");
-            if tokio::io::AsyncWriteExt::write_all(&mut upstream, fwd.as_bytes())
-                .await
-                .is_err()
-            {
-                return;
-            }
-
-            // 4. 读 upstream 的 101 升级响应并转发给 client
-            let mut resp = vec![0u8; 4096];
-            let rn = tokio::io::AsyncReadExt::read(&mut upstream, &mut resp)
-                .await
-                .unwrap_or(0);
-            if rn == 0 || !String::from_utf8_lossy(&resp[..rn]).starts_with("HTTP/1.1 101") {
-                return; // upstream 拒绝（400/403）——不转发
-            }
-            if tokio::io::AsyncWriteExt::write_all(&mut client, &resp[..rn])
-                .await
-                .is_err()
-            {
-                return;
-            }
-
-            // 5. 双向透传（握手已完成，包装为帧流）
-            let ws_client = tokio_tungstenite::WebSocketStream::from_raw_socket(
-                client,
-                tokio_tungstenite::tungstenite::protocol::Role::Server,
-                None,
-            )
-            .await;
-            let ws_upstream = tokio_tungstenite::WebSocketStream::from_raw_socket(
-                upstream,
-                tokio_tungstenite::tungstenite::protocol::Role::Client,
-                None,
-            )
-            .await;
-            let (mut a_tx, mut a_rx) = ws_client.split();
-            let (mut b_tx, mut b_rx) = ws_upstream.split();
-            let c2u = async move {
-                while let Some(msg) = a_rx.next().await {
-                    if b_tx.send(msg.unwrap()).await.is_err() {
-                        break;
-                    }
-                }
-            };
-            let u2c = async move {
-                while let Some(msg) = b_rx.next().await {
-                    if a_tx.send(msg.unwrap()).await.is_err() {
-                        break;
-                    }
-                }
-            };
-            tokio::select! {
-                _ = c2u => {},
-                _ = u2c => {},
-            }
-        });
-    }
+/// 关闭连接（前端 disconnect 时）
+#[tauri::command]
+async fn ws_close(app: tauri::AppHandle) {
+    *app.state::<WsState>().0.lock().await = None;
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .manage(WsState(tokio::sync::Mutex::new(None)))
         .setup(|app| {
-            // 代码创建主窗口（tauri.conf.json 不再声明 windows）
             use tauri::{WebviewUrl, WebviewWindowBuilder};
             WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                 .title("zero-pet")
@@ -166,14 +87,15 @@ pub fn run() {
                 .skip_taskbar(true)
                 .shadow(false)
                 .build()?;
-            // 启动本地 WS 代理（前端连 9120 → 转发 Hermes 9119）
-            start_ws_proxy();
             setup_tray(app)?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             move_window,
             snap_to_corner,
+            ws_connect,
+            ws_send,
+            ws_close,
             load_runtime_config,
             get_history_path,
             save_history,

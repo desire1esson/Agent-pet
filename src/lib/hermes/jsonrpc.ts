@@ -1,11 +1,14 @@
-// jsonrpc.ts — Hermes JSON-RPC over WebSocket 适配器（协议细节全隔离于此层）
-// 协议：newline-delimited JSON-RPC @ ws://<host>:<port>/api/ws?token=<token>
+// jsonrpc.ts — Hermes JSON-RPC over Rust WS 桥 适配器（协议细节全隔离于此层）
+// 协议：newline-delimited JSON-RPC（浏览器 WebSocket → Tauri IPC → Rust WS 客户端）
+// Rust 侧无 Origin → 绕过 Hermes CORS 白名单（tauri:// 页面直连会被 403）
 // 方法：session.create / prompt.submit
 // 事件：method:"event" + params.type（message.delta / message.complete / reasoning.delta）
 // ⚠️ Hermes 内核升级时：仅修改本文件的协议常量/解析，业务层零改动
 
 import type { HermesAdapter, HermesEvents, HermesStatus } from "./types";
 import { isVersionAtLeast, resolveConfig } from "./config";
+import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
 // ── 协议常量（单点维护） ──
 const RPC = {
@@ -39,7 +42,7 @@ export class HermesJsonRpcAdapter implements HermesAdapter {
   readonly id = "hermes";
   readonly name = "Hermes Agent";
 
-  private ws: WebSocket | null = null;
+  private unlistenMsg: UnlistenFn | null = null;
   private rid = 0;
   private pending = new Map<number, (v: unknown) => void>();
   private streamText = "";
@@ -71,9 +74,9 @@ export class HermesJsonRpcAdapter implements HermesAdapter {
     const id = ++this.rid;
     return new Promise((resolve) => {
       this.pending.set(id, resolve);
-      this.ws?.send(
-        JSON.stringify({ jsonrpc: "2.0", id, method, params: params ?? {} }),
-      );
+      void invoke("ws_send", {
+        msg: JSON.stringify({ jsonrpc: "2.0", id, method, params: params ?? {} }),
+      }).catch(() => {});
     });
   }
 
@@ -141,38 +144,32 @@ export class HermesJsonRpcAdapter implements HermesAdapter {
     // 1. 版本探测（HTTP，快速失败）
     await this.probeVersion();
 
-    // 2. WebSocket 连接（带超时）
-    this.setStatus("connecting");
-    await new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket(cfg.wsUrl);
-      const timer = window.setTimeout(() => {
-        ws.close();
-        reject(new Error("连接超时（Hermes serve 未运行？）"));
-      }, cfg.connectTimeout);
-      ws.onopen = () => {
-        window.clearTimeout(timer);
-        this.ws = ws;
-        this.sessionIdValue = null; // 新连接 → 会话重建
-        this.reconnectAttempts = 0;
-        this.setStatus("connected");
-        resolve();
-      };
-      ws.onerror = () => {
-        window.clearTimeout(timer);
-        this.setStatus("error");
-        reject(new Error("Hermes 后端连接失败"));
-      };
-      ws.onmessage = (e) => this.handleMessage(String(e.data));
-      ws.onclose = () => {
-        this.ws = null;
+    // 2. 注册事件监听（一次性：消息 / 断连状态）
+    if (!this.unlistenMsg) {
+      this.unlistenMsg = await listen<string>("ws:message", (e) =>
+        this.handleMessage(e.payload),
+      );
+      await listen<string>("ws:status", () => {
         if (this.manualClose) {
           this.setStatus("disconnected");
           return;
         }
         // 异常断开 → 自动重连（指数退避 1s→2s→4s…最大 30s）
         this.scheduleReconnect();
-      };
-    });
+      });
+    }
+
+    // 3. Rust WS 客户端连接（无 Origin → 绕过 CORS）
+    this.setStatus("connecting");
+    try {
+      await invoke("ws_connect", { url: cfg.wsUrl });
+      this.sessionIdValue = null; // 新连接 → 会话重建
+      this.reconnectAttempts = 0;
+      this.setStatus("connected");
+    } catch {
+      this.setStatus("error");
+      throw new Error("Hermes 后端连接失败");
+    }
   }
 
   /** 断线自动重连：指数退避 + 最多 8 次 */
@@ -223,8 +220,7 @@ export class HermesJsonRpcAdapter implements HermesAdapter {
   disconnect(): void {
     this.manualClose = true;
     window.clearTimeout(this.reconnectTimer);
-    this.ws?.close();
-    this.ws = null;
+    void invoke("ws_close").catch(() => {});
     this.sessionIdValue = null;
     this.setStatus("disconnected");
   }
