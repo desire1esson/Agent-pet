@@ -1,5 +1,4 @@
 @echo off
-chcp 65001 >nul
 title Zero-Pet Launcher / Áã¡¤×À³èÆô¶¯Æ÷
 rem ============================================================
 rem  Zero-Pet Launcher - all-in-one: token + config + serve
