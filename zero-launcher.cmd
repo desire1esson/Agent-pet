@@ -31,20 +31,21 @@ echo.
 echo  ------------------------------------------------------------
 echo   [T0] Token check / 检查 token...
 set "TOK=%HERMES_DASHBOARD_SESSION_TOKEN%"
+if not "%TOK%"=="" goto token_ok
+echo    No token in env / 环境变量中没有 token（首次运行）
+set /p TOK=    Enter your token / 请输入 token: 
 if "%TOK%"=="" (
-    echo    No token in env / 环境变量中没有 token（首次运行）
-    set /p TOK=    Enter your token / 请输入 token: 
-    if "%TOK%"=="" (
-        echo    [X] Token required / 必须输入 token 才能继续
-        pause
-        exit /b 1
-    )
-    setx HERMES_DASHBOARD_SESSION_TOKEN "%TOK%" >nul
-    set  HERMES_DASHBOARD_SESSION_TOKEN=%TOK%
-    echo    [OK] Token saved to system env / token 已写入系统环境变量
-) else (
-    echo    [OK] Token found in env / 环境变量已有 token
+    echo    [X] Token required / 必须输入 token 才能继续
+    pause
+    exit /b 1
 )
+setx HERMES_DASHBOARD_SESSION_TOKEN "%TOK%" >nul
+set  HERMES_DASHBOARD_SESSION_TOKEN=%TOK%
+echo    [OK] Token saved to system env / token 已写入系统环境变量
+goto token_done
+:token_ok
+echo    [OK] Token found in env / 环境变量已有 token
+:token_done
 
 echo.
 echo   [T1] Write config / 写桌宠配置...
