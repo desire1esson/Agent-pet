@@ -209,6 +209,28 @@ npm test               # engine/bus unit tests
 npm run tauri build    # package installers (NSIS + MSI)
 ```
 
+## Roadmap
+
+**v1.1 — Light interaction**
+- ⚡ **Quick commands**: one-click common actions (recall/report/status) — faster than opening the chat
+- 🔔 **Notifications**: Zero pings you when the agent finishes / needs approval
+- 🚀 **Auto-start**: back on your desktop at boot
+
+**v1.2 — Presence upgrade**
+- 🎙 **Voice interaction**: voice input + Zero speaks (TTS)
+- 👗 **Wardrobe system**: character customization (outfits/colors/accessories) — settings "Character" section already reserved
+
+**v1.x — Ecosystem**
+- 🔌 **Multi-kernel**: stdio adapter (Claude Code / OpenCode-style kernels, config-ready)
+- 🖥 **Multiple characters**: several desktop companions at once (one window each)
+- 🌍 **i18n**: language switching (strings centralized; drop in vue-i18n)
+
+**Long-term**
+- 🎨 **Community skin ecosystem**: official skin repo / one-click skin install
+- More life behaviors: Zero's daily life keeps growing (behavior registry ready)
+
+> Want to contribute? Skins/animations/behaviors are zero-barrier (see CONTRIBUTING); code direction — open an issue first.
+
 ## Support & thanks
 
 **Derivative & attribution**
