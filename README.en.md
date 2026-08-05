@@ -8,6 +8,8 @@ Not another chat client. It lets you:
 - **Approve it** — dangerous operations raise an approval card; it only acts when you nod
 
 > Built for **Hermes Agent** (the creator uses Hermes, not Codex/Claude — purely personal preference, unrelated to capability). The architecture is designed to be extensible; other kernels see "Agent Kernel Extension".
+>
+> 🪟 **Windows desktop only** (Win10/11, x64) — uses the system WebView2; installers are only 2-3 MB.
 
 ![Zero](docs/zero-screenshot.png)
 

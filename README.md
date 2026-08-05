@@ -10,6 +10,8 @@
 - **确认它**——危险操作弹出审批卡，你点头它才执行
 
 > 本项目为 **Hermes Agent** 打造（创作者用 Hermes，不用 Codex/Claude——纯粹的个人偏好，与能力无关）。架构按可扩展设计，其他内核见「Agent 内核扩展」。
+>
+> 🪟 **面向 Windows 桌面**（Win10/11，x64）——使用系统 WebView2，安装包仅 2-3 MB。
 
 ![零](docs/zero-screenshot.png)
 
