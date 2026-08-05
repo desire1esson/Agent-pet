@@ -207,6 +207,16 @@ watch(
   { deep: true },
 );
 
+// 思考中占位气泡出现时滚动到底（气泡不是消息，不进 messages watch）
+watch(zero.zeroState, (s) => {
+  if (s === "thinking") {
+    requestAnimationFrame(() => {
+      const el = document.querySelector(".chatlog");
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+  }
+});
+
 // ── 皮肤渲染 ──
 const spriteComp = computed(() => registry.get(settings.value.sprite)?.component ?? ZeroSprite);
 const spriteProps = computed(() => ({
@@ -304,7 +314,10 @@ onUnmounted(() => {
       <div class="chatlog" ref="win.elChatlog">
         <div v-for="(m, i) in chat.messages.value" :key="i" :class="`msg ${m.role}`">
           {{ m.text }}
-          <span v-if="i === chat.messages.value.length - 1 && zero.zeroState.value === 'thinking'" class="caret"></span>
+        </div>
+        <!-- 思考中占位气泡：zeropet 没有 thinking 块，用明显的"思考中"提示代替 -->
+        <div v-if="zero.zeroState.value === 'thinking'" class="msg zero thinking">
+          {{ strings.thinking }}<span class="dots"><i></i><i></i><i></i></span>
         </div>
       </div>
       <div class="bubble-input" ref="win.elInput">
@@ -609,17 +622,37 @@ body,
   background: var(--c-bubble-me);
   border-bottom-right-radius: 4px;
 }
-.caret {
-  display: inline-block;
-  width: 2px;
-  height: 13px;
-  background: #1c1c2e;
-  vertical-align: -2px;
-  margin-left: 2px;
-  animation: caret-blink 0.8s steps(1) infinite;
+/* 思考中占位气泡：三连点弹跳 + 弹入 */
+.msg.thinking {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  animation: think-msg-in 0.3s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
-@keyframes caret-blink {
-  50% { opacity: 0; }
+.msg.thinking .dots {
+  display: inline-flex;
+  gap: 3px;
+}
+.msg.thinking i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #1c1c2e;
+  animation: td-bounce 1.2s ease-in-out infinite;
+}
+.msg.thinking i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.msg.thinking i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes td-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+@keyframes think-msg-in {
+  from { transform: scale(0.85) translateY(4px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
 }
 
 /* ── 输入区 ── */

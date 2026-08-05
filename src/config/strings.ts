@@ -27,6 +27,7 @@ export const strings = {
     lateNight: "这么晚了，注意休息 🌙",
   },
   // 对话
+  thinking: "思考中",
   onConnect: "我在。想让我做什么？",
   connectFail: (msg: string) => `连接失败：${msg}`,
   danceDone: "表演完毕 🎩✨",

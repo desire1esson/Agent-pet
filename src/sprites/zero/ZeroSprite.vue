@@ -7,6 +7,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { SpriteProps } from "../../composables/useSpriteRegistry";
+import { strings } from "../../config/strings";
 
 const props = defineProps<SpriteProps>();
 
@@ -34,6 +35,12 @@ const cls = computed(() => [
         <circle class="tb tb1" cx="30" cy="36" r="4" />
         <circle class="tb tb2" cx="38" cy="22" r="6" />
         <circle class="tb tb3" cx="50" cy="10" r="8" />
+      </g>
+      <!-- 漫画感思考标签（黄色贴纸 + 尖尾巴 + 摇摆） -->
+      <g v-if="state === 'thinking'" class="think-tag">
+        <path class="tt-tail" d="M 86 26 L 95 35 L 104 26 Z" />
+        <rect class="tt-box" x="62" y="2" width="66" height="24" rx="12" />
+        <text class="tt-text" x="95" y="17.5" text-anchor="middle">{{ strings.thinking }}…</text>
       </g>
       <!-- 工作态气泡 -->
       <g v-if="state === 'working' && toolName" class="work-bubble">
@@ -195,6 +202,38 @@ const cls = computed(() => [
 @keyframes tb-pop {
   0%, 100% { opacity: 0.3; transform: translateY(2px); }
   50% { opacity: 1; transform: translateY(-3px); }
+}
+/* 漫画感思考标签：黄色贴纸 + 粗黑边 + 弹入 + 摇摆 */
+.think-tag {
+  animation:
+    think-tag-in 0.4s cubic-bezier(0.2, 1.6, 0.4, 1),
+    think-tag-wiggle 1.8s ease-in-out 0.4s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tt-box {
+  fill: #ffd166;
+  stroke: #1c1c2e;
+  stroke-width: 3;
+}
+.tt-tail {
+  fill: #ffd166;
+  stroke: #1c1c2e;
+  stroke-width: 3;
+}
+.tt-text {
+  fill: #1c1c2e;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+@keyframes think-tag-in {
+  from { transform: scale(0.3) rotate(-12deg); opacity: 0; }
+  to { transform: scale(1) rotate(-4deg); opacity: 1; }
+}
+@keyframes think-tag-wiggle {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(3deg); }
 }
 /* 眼睛切换 */
 .state-thinking .eyes-normal,
