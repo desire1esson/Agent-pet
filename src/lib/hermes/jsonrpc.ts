@@ -76,7 +76,9 @@ export class HermesJsonRpcAdapter implements HermesAdapter {
       this.pending.set(id, resolve);
       void invoke("ws_send", {
         msg: JSON.stringify({ jsonrpc: "2.0", id, method, params: params ?? {} }),
-      }).catch(() => {});
+      }).catch((err) => {
+        console.error("[zero-pet] ws_send failed:", err);
+      });
     });
   }
 

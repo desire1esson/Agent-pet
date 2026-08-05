@@ -15,6 +15,22 @@ type WsSink = futures_util::stream::SplitSink<WsStream, tokio_tungstenite::tungs
 
 struct WsState(tokio::sync::Mutex<Option<WsSink>>);
 
+/// 诊断日志（写 %TEMP%\zero-pet-ws.log——release 无控制台，错误必须落文件）
+fn dbg_log(s: &str) {
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(std::env::temp_dir().join("zero-pet-ws.log"))
+    {
+        let t = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        let _ = writeln!(f, "[{t}] {s}");
+    }
+}
+
 #[tauri::command]
 fn move_window(window: tauri::Window, x: i32, y: i32) {
     let _ = window.set_position(PhysicalPosition::new(x, y));
@@ -35,9 +51,15 @@ fn snap_to_corner(window: tauri::Window) {
 #[tauri::command]
 async fn ws_connect(app: tauri::AppHandle, url: String) -> Result<(), String> {
     use futures_util::StreamExt;
-    let (ws, _resp) = tokio_tungstenite::connect_async(url.as_str())
-        .await
-        .map_err(|e| e.to_string())?;
+    dbg_log(&format!("ws_connect: {url}"));
+    let (ws, resp) = match tokio_tungstenite::connect_async(url.as_str()).await {
+        Ok(v) => v,
+        Err(e) => {
+            dbg_log(&format!("ws_connect FAIL: {e}"));
+            return Err(e.to_string());
+        }
+    };
+    dbg_log(&format!("ws_connect OK (status={})", resp.status()));
     let (sink, mut stream) = ws.split();
     let app2 = app.clone();
     tauri::async_runtime::spawn(async move {
@@ -46,9 +68,11 @@ async fn ws_connect(app: tauri::AppHandle, url: String) -> Result<(), String> {
                 let _ = app2.emit("ws:message", t.to_string());
             }
         }
+        dbg_log("ws recv loop ended");
         let _ = app2.emit("ws:status", "disconnected");
     });
     *app.state::<WsState>().0.lock().await = Some(sink);
+    dbg_log("sink stored");
     Ok(())
 }
 
@@ -59,9 +83,16 @@ async fn ws_send(app: tauri::AppHandle, msg: String) -> Result<(), String> {
     let state = app.state::<WsState>();
     let mut guard = state.0.lock().await;
     let sink = guard.as_mut().ok_or("ws not connected")?;
-    sink.send(tokio_tungstenite::tungstenite::Message::Text(msg.into()))
+    match sink
+        .send(tokio_tungstenite::tungstenite::Message::Text(msg.into()))
         .await
-        .map_err(|e| e.to_string())
+    {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            dbg_log(&format!("ws_send error: {e}"));
+            Err(e.to_string())
+        }
+    }
 }
 
 /// 关闭连接（前端 disconnect 时）
