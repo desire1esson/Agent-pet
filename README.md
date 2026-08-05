@@ -133,12 +133,28 @@ VITE_HERMES_TOKEN="你的口令" npm run tauri dev
 
 保存后重启桌面形象生效。**配置优先级**：运行时 config.json > 构建时 `VITE_HERMES_*` > 默认值（127.0.0.1:9119）。
 
-**不会手写 JSON？用启动器脚本**（仓库根目录 `zero-launcher.cmd`，双击运行）：
+**不会手写 JSON？用启动器脚本**（`zero-launcher.cmd`）：
+
+```
+安装版用户：安装目录\_up_\zero-launcher.cmd（或仓库根目录下载）
+开发者：仓库根目录 zero-launcher.cmd
+```
+
+双击运行：
 
 ```
 ① 提示输入 token → 自动生成/更新 config.json（不用手写）
 ② 检测 serve 未运行 → 自动启动 hermes serve（带 token）
 ③ 提示"可以开桌宠了" → 双击桌宠即可对话
+```
+
+**首次使用完整流程（安装版）**：
+
+```
+1. 下载安装包 → 安装（Win10/11 自带 WebView2，无需环境）
+2. 找到安装目录下的 zero-launcher.cmd → 双击
+3. 输入你的 token → 自动生成 config.json + 拉起 serve
+4. 双击 zero-pet.exe → 直接对话
 ```
 
 > 启动器是 **Hermes 场景辅助**——其他内核用户不需要它（自己起后端，桌宠纯连接）。

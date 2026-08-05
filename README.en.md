@@ -131,12 +131,28 @@ Configure without rebuilding — edit `zero-pet/config.json` in the app data dir
 
 Restart the app to apply. **Priority**: runtime config.json > build-time `VITE_HERMES_*` > defaults (127.0.0.1:9119).
 
-**Don't want to hand-write JSON? Use the launcher script** (`zero-launcher.cmd` in the repo root, double-click):
+**Don't want to hand-write JSON? Use the launcher script** (`zero-launcher.cmd`):
+
+```
+Installed users: <install dir>\_up_\zero-launcher.cmd (or grab it from the repo root)
+Developers: repo root zero-launcher.cmd
+```
+
+Double-click:
 
 ```
 1. Prompts for your token → auto-generates/updates config.json (no hand-writing)
 2. Detects serve not running → starts `hermes serve` with the token
 3. Tells you when ready → open the companion and chat
+```
+
+**First-run flow (installed version)**:
+
+```
+1. Download installer → install (Win10/11 ships WebView2; no dev environment)
+2. Find zero-launcher.cmd in the install dir → double-click
+3. Enter your token → config.json generated + serve started
+4. Double-click zero-pet.exe → chat immediately
 ```
 
 > The launcher is a **Hermes-scenario helper** — users of other kernels don't need it (start your own backend; the companion is pure-connect).
