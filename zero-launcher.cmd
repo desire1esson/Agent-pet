@@ -2,7 +2,7 @@
 title Zero-Pet Launcher / 零·桌宠启动器
 rem ============================================================
 rem  Zero-Pet Launcher - config + serve only
-rem  启动器职责：① 检查密钥（系统环境变量）② 写 config.json ③ 拉起 Hermes serve
+rem  启动器职责：① 检查密钥（系统环境变量）② 写 config.json ③ 拉起 Hermes serve（后台隐藏）
 rem  前置：请先在 CMD 执行 setx HERMES_DASHBOARD_SESSION_TOKEN your-key
 rem ============================================================
 
@@ -18,7 +18,7 @@ echo.
 echo  Steps / 步骤:
 echo    [1] Key check / 检查密钥（来自系统环境变量）
 echo    [2] Config     / 写桌宠配置（config.json）
-echo    [3] Serve      / 拉起后端（hermes serve）
+echo    [3] Serve      / 拉起后端（hermes serve，后台隐藏）
 echo.
 echo  ------------------------------------------------------------
 
@@ -86,9 +86,12 @@ pause
 exit /b 1
 
 :have_hermes
-rem 补 Hermes 的 node 到 PATH（serve 内部需要 node）
-start "Hermes Serve" cmd /c "set PATH=%LOCALAPPDATA%\hermes\node;%PATH%&& hermes serve --skip-build > %TEMP%\hermes-launch.log 2>&1"
-echo    [OK] 后端启动中 / Serve starting - 等待 READY 后打开桌宠
+rem 后台隐藏启动 serve（无窗口——日志重定向到文件）
+set "PATH=%LOCALAPPDATA%\hermes\node;%PATH%"
+set "HERMES_DASHBOARD_SESSION_TOKEN=%TOK%"
+powershell -NoProfile -Command "Start-Process -FilePath hermes -ArgumentList 'serve','--skip-build' -WindowStyle Hidden -RedirectStandardOutput \"$env:TEMP\hermes-launch.log\" -RedirectStandardError \"$env:TEMP\hermes-launch.err\""
+echo    [OK] 后端已后台启动（无窗口）/ Serve started in background
+echo        日志 / Log: %TEMP%\hermes-launch.log
 goto serve_done
 
 :serve_ok
