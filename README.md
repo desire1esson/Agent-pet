@@ -272,6 +272,44 @@ npm run tauri build   # 打包安装包（NSIS + MSI）
 
 > 想参与？皮肤/动画/行为贡献零门槛（见 CONTRIBUTING），代码方向先开 issue 讨论。
 
+## 已知问题与处理（坑）
+
+> 踩过的坑都写在这里——遇到问题先查表。
+
+### 连接类
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| 桌宠显示「连接失败：Hermes 后端连接失败」 | serve 未运行 或 token 不一致 | 双击 `zero-launcher.cmd`（自动检查密钥 → 写配置 → 拉起 serve） |
+| WS 握手 403 | setx 密钥 ≠ config.json token ≠ serve 启动时用的 token | **三方一致**：setx 一次 → 之后永远用 launcher 起 serve（它显式设 token）；**不要手动/命令行起 serve** |
+| 手动起 serve 后连不上 | 手动进程继承了污染的环境变量（token 错），或重复绑端口 | 杀干净所有 python serve 进程 → 用 launcher 重起 |
+
+### 配置类
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| 改 config.json 的 `port` 无效 | 桌宠经**本地代理 9120** 连接，代理固定转发 Hermes 9119（绕过 CORS Origin 白名单） | `port` 字段无效是设计如此——改 `host`/`token` 有效 |
+| 卸载重装后 config.json 不见了 | 卸载清理用户数据目录 | 重跑 launcher（自动重新生成） |
+| 密钥改了但桌宠还连旧的 | config.json 没更新 | 改 setx 后手动同步 config.json（或删掉重跑 launcher） |
+
+### 运行类
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| 后台有 hermes serve 进程 | serve 是**长驻服务**（正常） | **不要杀**——杀了桌宠断连；需要重启时用 launcher |
+| Hermes GUI 和桌宠同时开 | GUI 的 serve 用**随机端口**（`--port 0`），桌宠 serve 用 9119——**无冲突** | 可以共存，放心同时开 |
+| 启动器提示「密钥不一致」 | config.json 的 token 和系统 setx 不一致 | 打开提示的 config.json 手动改成一致 → 重跑 |
+| 启动器提示「未检测到密钥」 | 还没执行 setx | 先 CMD 执行 `setx HERMES_DASHBOARD_SESSION_TOKEN 你的密钥` → 重跑 |
+
+### 构建/发布类（开发者）
+
+| 现象 | 处理 |
+|---|---|
+| 发布安装包带 token | **发布前删 `.env.local`**（已被 gitignore 忽略，不入库）再 `npm run tauri build` |
+| `src-tauri/src/lib.rs` 的 CRLF 转义被破坏（编译过但请求头 400） | 该文件含 `\r\n` 字符串转义——**只用 write_file 全量重写，勿用 patch**（patch 会破坏转义） |
+| cargo 编译报 RC.EXE 找不到 | 设环境变量 `RC` 指向 Windows SDK 的 `rc.exe`，或把 `C:\Program Files (x86)\Windows Kits\10\bin\<版本>\x64` 加进 PATH |
+| 代理端口 9120 被占（双实例桌宠） | 同时只开一个桌宠实例 |
+
 ## 支持与致谢
 
 **衍生与致谢**
