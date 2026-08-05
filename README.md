@@ -9,7 +9,7 @@
 - **指挥它**——气泡对话 / 快捷指令，一句话就动
 - **确认它**——危险操作弹出审批卡，你点头它才执行
 
-> 本项目为 **Hermes Agent** 打造（创作者用 Hermes，不用 Codex/Claude——纯粹的个人偏好，与能力无关）。架构按可扩展设计，其他内核见「Agent 内核扩展」。
+> 本项目为 **Hermes Agent** 打造（创作者用 Hermes，不用 Codex/Claude——纯粹的个人偏好，与能力无关）。架构按可扩展设计，其他内核见「对接其他内核」。
 >
 > 🪟 **面向 Windows 桌面**（Win10/11，x64）——使用系统 WebView2，安装包仅 2-3 MB。
 
@@ -22,15 +22,183 @@
 ## 这是什么
 
 **零**是一个最小化的桌面窗口展示层：
-- 封装你的 agent 后端（默认 **Hermes Agent**——见「对接 Hermes」；协议友好的内核可通过 `config/agents.ts` 扩展）
+- 封装你的 agent 后端（**Hermes Agent**，当前唯一内核）
 - 前端形象完全**可替换、可自定义**（换形象 = 写一个组件，自动发现）
 - 动画**数据驱动**（加动画 = 改一行配置）
 
+## 功能
+
+- 💬 真实对话：流式回复 + **思考中标记**（聊天区占位气泡 + 形象头顶漫画标签）
+- ⚡ 危险操作审批：agent 请求 → 零变身立绘 + 确认卡片
+- 🛠 工具调用工作态：零"看着你干活"
+- 🔌 断线自动重连（指数退避）
+- 📝 会话历史：本地文件存储 + 一键回顾
+- 🎭 生命动画：眨眼 / 哈欠 / 挠头 / 伸懒腰 / 散步 / 贴边隐藏 / 睡觉
+- 🎩 彩蛋：说「跳舞」→ 零开演唱会
+- 🎨 皮肤系统：设置里切换形象
+- ⚙ 设置中心：透明度 / 置顶 / 历史 / 变身开关
+- 🖥 系统托盘：右键菜单 / 左键唤起
+
+---
+
+## 用户指南
+
+*预编译用户从这里开始——不用任何开发环境。*
+
+### 1. 安装
+
+Release 页面下载 `zero-pet_<version>_x64-setup.exe`（NSIS 安装器，约 2-3 MB）→ 双击安装。Win10/11 自带 WebView2，无需其他依赖。
+
+> 开发者也可以自己构建安装包，见「开发者指南」。
+
+### 2. 连接 Hermes（密钥设置）
+
+**为什么必须设密钥**：Hermes serve 用 `HERMES_DASHBOARD_SESSION_TOKEN` 做认证。不设的话 Hermes 每次启动随机生成一个新值——桌宠永远对不上。所以**必须自己设一个固定值**。
+
+密钥共存在三处，必须一致：
+
+| 位置 | 说明 |
+|---|---|
+| 系统环境变量 `HERMES_DASHBOARD_SESSION_TOKEN` | serve 启动时自动读取 |
+| 桌宠配置 `config.json` 的 `token` | 桌宠连接时使用 |
+| serve 进程启动时的环境 | 由启动器保证与上面一致 |
+
+**① 设密钥（CMD，一次性）**
+
+```cmd
+setx HERMES_DASHBOARD_SESSION_TOKEN 你的密钥
+```
+
+> `setx` 会把密钥永久写入系统环境变量。密钥随便定（一串口令即可），但设了就别再改——改了要按第 4 步同步。
+
+**② 双击启动器**（`zero-launcher.cmd`——安装目录下）
+
+启动器自动完成三步：
+
+```
+[1] 检查密钥   ← 读系统环境变量；未检测到会提示你先去 CMD 执行 setx
+[2] 写配置     ← 生成/校验 config.json（密钥不一致会提示你手动修改）
+[3] 拉起后端   ← serve 未运行则后台自动启动；已在运行则跳过（防重复）
+```
+
+**③ 双击桌宠**（`zero-pet.exe`）→ 对话
+
+**④ 换密钥**（只有改了 setx 才需要）：
+
+```
+setx 新值 → 删掉 config.json（或手动改 token）→ 重跑启动器 → 重开桌宠
+```
+
+**启动器提示处理**：
+
+| 提示 | 处理 |
+|---|---|
+| `未检测到密钥` | CMD 执行 `setx HERMES_DASHBOARD_SESSION_TOKEN 你的密钥` → 重跑 |
+| `密钥不一致` | 打开提示的 config.json，把 token 改成和 setx 一致 → 重跑 |
+| `后端已在运行` | 正常——直接开桌宠 |
+
+> 启动器是 **Hermes 场景辅助**——其他内核用户不需要它（自己起后端，桌宠纯连接）。
+
+### 3. 手动配置（不用启动器）
+
+不重新编译也能配置连接——编辑桌宠数据目录下的 `zero-pet/config.json`：
+
+```
+%APPDATA%/com.zero-pet.app/zero-pet/config.json   （Windows）
+```
+
+```json
+{
+  "host": "127.0.0.1",
+  "port": 9119,
+  "token": "你的密钥"
+}
+```
+
+保存后重启桌宠生效。**配置优先级**：`config.json` > 构建时 `VITE_HERMES_*` > 默认值（127.0.0.1:9119）。
+
+> 不用启动器时，serve 需要你自己启动——确保启动 serve 的进程里带着同一个 `HERMES_DASHBOARD_SESSION_TOKEN`（`export` / `setx` 均可）。
+
+### 4. 日常使用
+
+**与零互动**
+
+| 操作 | 效果 |
+|---|---|
+| 单击零 | 零开心回应 |
+| 双击零 | 打开 / 关闭聊天窗口 |
+| 拖动零 | 移动位置；拖到屏幕边缘自动贴边藏起来——鼠标再动一下，它滑出来 |
+| 输入「跳舞」 | MJ 舞蹈彩蛋 |
+| 托盘左键 | 唤起零（窗口隐藏时） |
+| 托盘菜单 | 显示零 / 退出 |
+
+**聊天窗口**
+
+- 头部：连接状态点 · 标题 · ⚙ 设置 · ✕ 关闭
+- 底部输入框发送消息；输入框右下角手柄可拖动调整聊天宽度
+- 零思考时：聊天区出现「思考中」占位气泡，形象头顶亮起漫画标签
+
+**审批（危险操作）**
+
+agent 请求危险操作时，零变身像素战士并弹出审批卡——**批准一次 / 本次会话 / 总是允许 / 拒绝**，你点头它才执行。
+
+**设置（⚙）**
+
+- 背景透明度 / 窗口置顶
+- 会话历史：保存开关 / 记录上限 / 回顾聊天 / 清空记录
+- 形象：切换皮肤 / 审批时变身立绘
+
+**生命行为（自动）**
+
+零会在你离开时自己生活：眨眼 / 打哈欠 / 挠头 / 伸懒腰；久了会散步，走到屏幕边缘贴边藏起来；夜深了会自己睡觉。
+
+### 5. 已知问题
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| 桌宠显示「连接失败」 | serve 未运行 或 token 不一致 | 双击启动器（自动检查密钥 → 写配置 → 拉起 serve） |
+| 连不上且 serve 日志有 403/401 | 三方密钥不一致 | setx 一次 → 之后永远用启动器起 serve；不要手动/命令行起 serve |
+| 手动起 serve 后连不上 | 手动进程继承了污染的环境变量，或重复绑端口 | 杀干净所有 python serve 进程 → 用启动器重起 |
+| 卸载重装后 config.json 不见了 | 卸载清理用户数据目录 | 重跑启动器（自动重新生成） |
+| 密钥改了但桌宠还连旧的 | config.json 没更新 | 改 setx 后手动同步 config.json（或删掉重跑启动器） |
+| 后台有 hermes serve 进程 | serve 是长驻服务（正常） | **不要杀**——杀了桌宠断连；需要重启时用启动器 |
+| Hermes GUI 和桌宠同时开 | GUI 的 serve 用随机端口，桌宠用 9119——无冲突 | 可以共存 |
+
+---
+
+## 开发者指南
+
+### 快速开始
+
+前置：Rust + Tauri 环境（[tauri 2 官方指南](https://v2.tauri.app/start/prerequisites/)）、Node.js 18+、一个 agent 后端（默认 Hermes）。
+
+```bash
+npm install
+npm run tauri dev        # 开发模式
+npm run build            # 类型检查 + 前端构建
+npm test                 # 引擎/总线单元测试
+npm run tauri build      # 打包安装包（NSIS + MSI）
+```
+
+开发时对接 Hermes（与用户方式等价，构建时注入密钥）：
+
+```bash
+export HERMES_DASHBOARD_SESSION_TOKEN="你的口令"
+hermes serve --skip-build                      # 启动后端（默认 127.0.0.1:9119）
+VITE_HERMES_TOKEN="你的口令" npm run tauri dev  # 桌面形象侧
+```
+
+### 架构
+
 ```
 ┌─────────────────────────────────────────────┐
-│ 你的 agent（Hermes / Claude Code / Codex...） │ ← 对接层：lib/hermes（适配器接口）
+│ 你的 agent（Hermes——当前唯一内核）    │ ← 对接层：lib/hermes（适配器接口）
 └──────────────┬──────────────────────────────┘
-               │ JSON-RPC / WebSocket
+               │ WebSocket（Rust 客户端直连，无 Origin）
+┌──────────────▼──────────────────────────────┐
+│ Rust 壳（src-tauri/src/lib.rs）              │ ← WS 桥：connect/send/close（Tauri IPC）
+└──────────────┬──────────────────────────────┘
+               │ Tauri IPC（invoke / event）
 ┌──────────────▼──────────────────────────────┐
 │ 零（桌面形象窗口）                                 │
 │  ├─ 对话 / 审批 / 工具状态                     │ ← 状态层：composables/
@@ -39,188 +207,17 @@
 └─────────────────────────────────────────────┘
 ```
 
-## 设计理念
-
-**陪伴是状态，不是功能。**
-
-零不是被"使用"的——它住在你屏幕的角落里：
-- **有存在感**——会眨眼、打哈欠、散步、贴边藏起来、累了自己去睡觉；你发危险命令，它变身成像素战士拦住你
-- **最小化交互**——感知它（看表情就知道它在干嘛）、指挥它（一句话就动）、确认它（点头才执行）——三个动作覆盖 90% 的日常
-- **氛围编程**——它是 vibe coding 的产物：不是为了效率或指标，是为了"我在这里"这件事本身
-
-**关于工程理念**（刻意为之，不是缺失）：
-
-- **不堆工具链**——没有 ESLint、没有格式化战争、没有抽象过度的架构——类型检查（vue-tsc）+ 单元测试（引擎纯函数）+ CI 构建，到此为止。多一个工具就多一份维护成本，桌面形象应该轻。
-- **配置代替代码**——想要的东西都在 `config/` 里改，不逼你读源码
-- **可读性优先**——代码按"三个月后的自己还能看懂"来写，而不是按"满足某种 lint 规则"来写
-
-> 这个项目相信：**少即是多**。你可以花五分钟看完整个架构，然后去改你自己的桌面形象——而不是先读完一万行脚手架。
-
-## 架构说明
-
 | 组件 | 说明 |
 |---|---|
-| **动画引擎（数据驱动）** | 动画 = 配置：触发条件 DSL（事件/状态/时间/关键词/概率）——加动画不改代码，无效配置自动跳过不崩 |
-| **行为注册表** | 新行为（散步/睡觉/舞蹈这类系统动作）= `registerEffect` 一行注册，不碰核心 |
-| **皮肤系统（自动发现）** | SpriteProps 契约 + glob 自动扫描——丢一个文件夹进 `sprites/` 就是新形象，零代码接入 |
-| **事件驱动解耦** | agent 事件 → 事件总线 → 三路分发（消息/表情/动画）——互不干扰，各层单向依赖 |
-| **适配器架构** | 内核可换：Hermes 现成（WS JSON-RPC），协议友好内核（stdio JSON 流）配置即用 |
-| **配置即性格** | 27 项节奏参数 + 动画定义 + 文案 + 主题令牌——整个"性格"都是配置文件，不碰代码 |
-| **审批即变身** | 危险操作 → 像素战士立绘 + 审批卡——把"确认"做成有仪式感的交互 |
-| **隐私优先** | 零硬编码凭据——token 全部环境变量/运行时配置注入；历史存本地文件（动态路径） |
+| **动画引擎（数据驱动）** | 动画 = 配置：触发条件 DSL（事件/状态/时间/关键词/概率）——加动画不改代码 |
+| **行为注册表** | 新行为（散步/睡觉/舞蹈）= `registerEffect` 一行注册，不碰核心 |
+| **皮肤系统（自动发现）** | SpriteProps 契约 + 自动扫描——丢一个文件夹进 `sprites/` 就是新形象 |
+| **事件驱动解耦** | agent 事件 → 事件总线 → 三路分发（消息/表情/动画），各层单向依赖 |
+| **Rust WS 桥（无 Origin）** | 前端经 Tauri IPC 让 Rust 直连 Hermes WS——客户端不带 Origin，天然绕开浏览器 CORS 白名单，无需本地代理 |
+| **配置即性格** | 节奏参数 + 动画定义 + 文案 + 主题令牌——整个"性格"都是配置文件 |
+| **隐私优先** | 零硬编码凭据——token 全部环境变量/运行时配置注入；历史存本地文件 |
 
-## 功能
-
-- 💬 真实对话（流式回复 + 思考态）
-- ⚡ 危险操作审批（agent 请求 → 零变身立绘 + 确认卡片）
-- 🛠 工具调用工作态（零"看着你干活"）
-- 🔌 断线自动重连（指数退避）
-- 🔄 **启动器脚本**（`zero-launcher.cmd`）——配 token + 一键拉起 serve（Hermes 场景辅助）
-- 📝 会话历史（本地文件存储 + 一键回顾）
-- 🎭 生命动画：眨眼 / 哈欠 / 挠头 / 伸懒腰 / 散步 / 贴边隐藏 / 睡觉 Zzz
-- 🎩 彩蛋：说"跳舞"→ 零开演唱会（月球漫步 / 45° 倾斜 / 彩带谢幕）
-- 🎨 皮肤系统：设置里切换形象
-- ⚙ 设置中心：透明度 / 置顶 / 历史 / 变身开关
-- 🖥 系统托盘：右键退出 / 左键唤起
-
-## 快速开始
-
-### 前置
-
-- Rust + Tauri 环境（[tauri 2 官方指南](https://v2.tauri.app/start/prerequisites/)）
-- Node.js 18+
-- 一个 agent 后端（默认 Hermes）
-
-### 跑起来
-
-```bash
-npm install
-npm run tauri dev
-```
-
-### 对接 Hermes（默认）
-
-Hermes serve 的连接凭证由**你自己设定**（桌面本地安全设计）：
-
-```bash
-# 1. 启动 serve 前，先设定你的 token（随便定，比如一个口令）
-export HERMES_DASHBOARD_SESSION_TOKEN="你的口令"
-hermes serve --skip-build        # 启动后端（默认 127.0.0.1:9119）
-
-# 2. 桌面形象侧用同一个口令构建/启动（token 构建时注入）
-VITE_HERMES_TOKEN="你的口令" npm run tauri dev
-```
-
-> **token 机制**：`HERMES_DASHBOARD_SESSION_TOKEN` 不设时 Hermes 会随机生成（每次启动都变）——所以必须**自己设一个固定值**，serve 与桌面形象用同一个。
-
-### 预编译用户：运行时配置文件
-
-不重新编译也能配置连接——编辑桌面形象数据目录下的 `zero-pet/config.json`：
-
-```
-%APPDATA%/com.zero-pet.app/zero-pet/config.json   （Windows）
-~/.local/share/com.zero-pet.app/zero-pet/config.json （Linux）
-~/Library/Application Support/com.zero-pet.app/zero-pet/config.json （macOS）
-```
-
-```json
-{
-  "host": "127.0.0.1",
-  "port": 9119,
-  "token": "你的口令"
-}
-```
-
-保存后重启桌面形象生效。**配置优先级**：运行时 config.json > 构建时 `VITE_HERMES_*` > 默认值（127.0.0.1:9119）。
-
-### 连接 Hermes：完整手册（用户视角）
-
-**① 设密钥（CMD，一次性）**
-
-Hermes serve 的认证密钥由你自己设定。打开 CMD 执行：
-
-```cmd
-setx HERMES_DASHBOARD_SESSION_TOKEN 你的密钥
-```
-
-> 密钥会永久存入系统环境变量——serve 启动时自动使用。**必须设**：不设的话 Hermes 每次随机生成，桌宠永远连不上。
-
-**② 双击启动器**（`zero-launcher.cmd`——安装版在安装目录下，或从仓库根目录获取）
-
-启动器按步骤自动执行：
-
-```
-[1] 检查密钥   ← 读系统环境变量；未检测到会提示你先去 CMD 执行 setx
-[2] 写配置     ← 生成/校验 config.json（密钥不一致会提示你手动修改）
-[3] 拉起后端   ← serve 未运行则自动启动；已在运行则跳过（防重复）
-```
-
-**③ 双击桌宠**（`zero-pet.exe`）→ 对话
-
-**常见提示处理**：
-
-| 启动器提示 | 处理 |
-|---|---|
-| `未检测到密钥` | 去 CMD 执行 `setx HERMES_DASHBOARD_SESSION_TOKEN 你的密钥` → 重跑启动器 |
-| `密钥不一致` | 打开提示的 config.json，把 token 改成和 setx 一致 → 重跑 |
-| `后端已在运行` | 正常——直接开桌宠 |
-
-> 启动器是 **Hermes 场景辅助**——其他内核用户不需要它（自己起后端，桌宠纯连接）。
-
-### 对接其他 agent
-
-桌面形象同一时间监听一个内核（当前为 Hermes WS）。接入新内核见 `src/config/agents.ts`（内核注册表）：
-
-- **协议友好内核**（提供 stdin/stdout JSON 事件流：流式增量/工具事件/审批事件，如 Claude Code、OpenCode 类）——在注册表加一条配置即可
-- **Hermes 类**（WS JSON-RPC）——参考 `src/lib/hermes/` 适配器
-- ⚠️ **Codex**：CLI 交互模式是 TUI（终端控制序列），非交互 exec 无审批事件流——原生接不了交互审批，待官方 SDK 协议成熟
-
-详细契约见 `src/lib/hermes/types.ts` 的 `HermesAdapter` 接口。
-
-## 下载安装包
-
-Release 页面提供预编译安装包（Windows x64，约 2-3 MB）：
-
-```
-src-tauri/target/release/bundle/nsis/zero-pet_<version>_x64-setup.exe   ← 推荐（NSIS 安装器）
-src-tauri/target/release/bundle/msi/zero-pet_<version>_x64_en-US.msi
-```
-
-- **普通用户**：下载 setup.exe → 双击安装 → 开箱即用（Win10/11 自带 WebView2，无需任何开发环境）
-- **开发者**：clone 源码 → 见「快速开始」
-
-> 安装包默认不带 token——按「对接 Hermes」设定 serve token 后，用 `VITE_HERMES_TOKEN` 重新构建即可连接。
-
-## 定制你的零
-
-| 想做什么 | 看这里 |
-|---|---|
-| 换形象 | [docs/SPRITE_CONTRACT.md](docs/SPRITE_CONTRACT.md) |
-| 加动画/改触发 | [docs/ANIMATION.md](docs/ANIMATION.md) |
-| 新行为（散步/睡觉类系统动作） | [docs/ANIMATION.md](docs/ANIMATION.md)「行为级效果」——`registerEffect` 一行注册 |
-| 改节奏参数 | `src/config/timings.ts` |
-| 改文案 | `src/config/strings.ts` |
-| 换主题色 | `src/config/theme.css` |
-
-## 文档
-
-| 文档 | 内容 |
-|---|---|
-| [SPRITE_CONTRACT.md](docs/SPRITE_CONTRACT.md) | 形象开发契约（SpriteProps 接口 + 状态渲染约定） |
-| [ANIMATION.md](docs/ANIMATION.md) | 动画配置指南（触发 DSL + 事件表 + 示例） |
-| [prototypes/](docs/prototypes/README.md) | 开发原型（形象设计/生命动画/MJ 舞蹈的完整迭代） |
-| [ZERO_NOTE.md](docs/ZERO_NOTE.md) · [ZERO_NOTE.en.md](docs/ZERO_NOTE.en.md) | 《零的自述》——第一个形象对项目的独白 |
-| [CHANGELOG.md](CHANGELOG.md) | 版本记录 |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南（皮肤/动画/内核/代码） |
-| [SECURITY.md](SECURITY.md) | 安全说明（凭据/数据/审批） |
-
-## 技术栈
-
-- **Tauri 2**（Rust 壳：窗口/托盘/历史存储——安装包仅 2-3 MB）
-- **Vue 3 + TypeScript**（前端：形象/动画/交互）
-- **CSS 动画**（41 个 keyframes，全部声明式）
-
-## 项目结构
+### 项目结构
 
 ```
 src/
@@ -240,75 +237,79 @@ src/
 │   ├─ zero/          默认形象（零）
 │   └─ minimal/       示例皮肤（契约参考）
 └─ App.vue            薄壳组装
+src-tauri/
+└─ src/lib.rs         Rust 壳：窗口/托盘/WS 桥（ws_connect/ws_send/ws_close）
 ```
 
-## 开发
+**技术栈**：Tauri 2（Rust 壳：窗口/托盘/历史存储/WS 桥）· Vue 3 + TypeScript · CSS 动画（45 个 keyframes，全部声明式）
 
-```bash
-npm run build    # 类型检查 + 构建
-npm test         # 引擎/总线单元测试
-npm run tauri build   # 打包安装包（NSIS + MSI）
-```
+### 定制你的零
+
+| 想做什么 | 看这里 |
+|---|---|
+| 换形象 | [docs/SPRITE_CONTRACT.md](docs/SPRITE_CONTRACT.md) |
+| 加动画/改触发 | [docs/ANIMATION.md](docs/ANIMATION.md) |
+| 新行为（散步/睡觉类系统动作） | [docs/ANIMATION.md](docs/ANIMATION.md)「行为级效果」 |
+| 改节奏参数 | `src/config/timings.ts` |
+| 改文案 | `src/config/strings.ts` |
+| 换主题色 | `src/config/theme.css` |
+
+### 对接其他内核
+
+桌面形象当前内置 **Hermes** 一个内核（WS JSON-RPC），业务层通过 `HermesAdapter` 接口与协议实现解耦（见 `src/lib/hermes/`）。接入新内核需要两步：
+
+1. **写适配器**——实现 `HermesAdapter` 接口（流式增量 / 工具事件 / 审批事件），参考 `src/lib/hermes/jsonrpc.ts`
+2. **换连接**——`src/composables/useChat.ts` 中实例化新适配器
+
+`src/config/agents.ts` 有内核注册表的**规划声明**（协议/审批模式/启动命令），但当前版本尚未实现注册表消费与 stdio 进程管理——多内核切换是路线图中的方向，现阶段换内核 = 改代码。
+
+- **协议友好内核**（提供 stdin/stdout JSON 事件流，如 Claude Code、OpenCode 类）——理论上适配器可行，stdio 进程管理待实现
+- ⚠️ **Codex**：CLI 交互模式是 TUI（终端控制序列），非交互 exec 无审批事件流——原生接不了交互审批，待官方 SDK 协议成熟
+
+详细契约见 `src/lib/hermes/types.ts` 的 `HermesAdapter` 接口。
+
+---
+
+## 设计理念
+
+**陪伴是状态，不是功能。**
+
+零不是被"使用"的——它住在你屏幕的角落里：感知它（看表情就知道它在干嘛）、指挥它（一句话就动）、确认它（点头才执行）——三个动作覆盖 90% 的日常。它是 vibe coding 的产物：不是为了效率或指标，是为了"我在这里"这件事本身。
+
+**关于工程理念**（刻意为之，不是缺失）：
+
+- **不堆工具链**——没有 ESLint、没有格式化战争——类型检查（vue-tsc）+ 单元测试 + CI 构建，到此为止。桌面形象应该轻。
+- **配置代替代码**——想要的东西都在 `config/` 里改，不逼你读源码
+- **可读性优先**——代码按"三个月后的自己还能看懂"来写
+
+> 这个项目相信：**少即是多**。你可以花五分钟看完整个架构，然后去改你自己的桌面形象——而不是先读完一万行脚手架。
+
+## 文档
+
+| 文档 | 内容 |
+|---|---|
+| [SPRITE_CONTRACT.md](docs/SPRITE_CONTRACT.md) | 形象开发契约（SpriteProps 接口 + 状态渲染约定） |
+| [ANIMATION.md](docs/ANIMATION.md) | 动画配置指南（触发 DSL + 事件表 + 示例） |
+| [prototypes/](docs/prototypes/README.md) | 开发原型（形象设计/生命动画/MJ 舞蹈的完整迭代） |
+| [ZERO_NOTE.md](docs/ZERO_NOTE.md) · [ZERO_NOTE.en.md](docs/ZERO_NOTE.en.md) | 《零的自述》——第一个形象对项目的独白 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本记录 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南（皮肤/动画/内核/代码） |
+| [SECURITY.md](SECURITY.md) | 安全说明（凭据/数据/审批） |
 
 ## 路线图
 
-**v1.1 —— 轻交互强化**
-- ⚡ **快捷指令**：一键常用操作（回顾/汇报/状态）——比打开聊天框更快的轻交互入口
-- 🔔 **通知**：agent 完成 / 需要确认时，零主动提醒
-- 🚀 **开机自启**：开机即回到桌面
+**v1.1 —— 轻交互强化**：快捷指令 / 通知（agent 完成、需要确认时零主动提醒）/ 开机自启
 
-**v1.2 —— 存在感升级**
-- 🎙 **语音交互**：语音输入 + 零开口说话（TTS）
-- 👗 **衣柜系统**：形象自定义（换装/配色/配饰）——设置中心「形象」区块已预留
+**v1.2 —— 存在感升级**：语音交互（语音输入 + TTS）/ 衣柜系统（换装/配色/配饰）
 
 **v1.x —— 生态扩展**
-- 🔌 **多内核支持**：stdio 适配器（Claude Code / OpenCode 类内核配置即用）
+- 🔌 **多内核支持（热插拔）**：当前**未实现**——内核硬编码（`useChat.ts` 直接实例化 Hermes 适配器，`config/agents.ts` 注册表仅为声明）。规划：适配器工厂 + 运行时切换 + stdio 适配器（Claude Code / OpenCode 类）
 - 🖥 **多形象同屏**：多个桌面形象共存（每个窗口一个）
 - 🌍 **i18n 完整化**：多语言切换（strings 已集中，接入 vue-i18n 即可）
 
-**长期**
-- 🎨 **社区皮肤生态**：官方皮肤仓库 / 一键安装皮肤包
-- 更多生命行为：零的日常持续丰富（行为注册表已就绪）
+**长期**：社区皮肤生态 / 更多生命行为
 
 > 想参与？皮肤/动画/行为贡献零门槛（见 CONTRIBUTING），代码方向先开 issue 讨论。
-
-## 已知问题与处理（坑）
-
-> 踩过的坑都写在这里——遇到问题先查表。
-
-### 连接类
-
-| 现象 | 原因 | 处理 |
-|---|---|---|
-| 桌宠显示「连接失败：Hermes 后端连接失败」 | serve 未运行 或 token 不一致 | 双击 `zero-launcher.cmd`（自动检查密钥 → 写配置 → 拉起 serve） |
-| WS 握手 403 | setx 密钥 ≠ config.json token ≠ serve 启动时用的 token | **三方一致**：setx 一次 → 之后永远用 launcher 起 serve（它显式设 token）；**不要手动/命令行起 serve** |
-| 手动起 serve 后连不上 | 手动进程继承了污染的环境变量（token 错），或重复绑端口 | 杀干净所有 python serve 进程 → 用 launcher 重起 |
-
-### 配置类
-
-| 现象 | 原因 | 处理 |
-|---|---|---|
-| 改 config.json 的 `port` 无效 | 桌宠经**本地代理 9120** 连接，代理固定转发 Hermes 9119（绕过 CORS Origin 白名单） | `port` 字段无效是设计如此——改 `host`/`token` 有效 |
-| 卸载重装后 config.json 不见了 | 卸载清理用户数据目录 | 重跑 launcher（自动重新生成） |
-| 密钥改了但桌宠还连旧的 | config.json 没更新 | 改 setx 后手动同步 config.json（或删掉重跑 launcher） |
-
-### 运行类
-
-| 现象 | 原因 | 处理 |
-|---|---|---|
-| 后台有 hermes serve 进程 | serve 是**长驻服务**（正常） | **不要杀**——杀了桌宠断连；需要重启时用 launcher |
-| Hermes GUI 和桌宠同时开 | GUI 的 serve 用**随机端口**（`--port 0`），桌宠 serve 用 9119——**无冲突** | 可以共存，放心同时开 |
-| 启动器提示「密钥不一致」 | config.json 的 token 和系统 setx 不一致 | 打开提示的 config.json 手动改成一致 → 重跑 |
-| 启动器提示「未检测到密钥」 | 还没执行 setx | 先 CMD 执行 `setx HERMES_DASHBOARD_SESSION_TOKEN 你的密钥` → 重跑 |
-
-### 构建/发布类（开发者）
-
-| 现象 | 处理 |
-|---|---|
-| 发布安装包带 token | **发布前删 `.env.local`**（已被 gitignore 忽略，不入库）再 `npm run tauri build` |
-| `src-tauri/src/lib.rs` 的 CRLF 转义被破坏（编译过但请求头 400） | 该文件含 `\r\n` 字符串转义——**只用 write_file 全量重写，勿用 patch**（patch 会破坏转义） |
-| cargo 编译报 RC.EXE 找不到 | 设环境变量 `RC` 指向 Windows SDK 的 `rc.exe`，或把 `C:\Program Files (x86)\Windows Kits\10\bin\<版本>\x64` 加进 PATH |
-| 代理端口 9120 被占（双实例桌宠） | 同时只开一个桌宠实例 |
 
 ## 支持与致谢
 
