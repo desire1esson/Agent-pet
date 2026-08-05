@@ -31,6 +31,7 @@ pub fn run() {
             move_window,
             snap_to_corner,
             load_runtime_config,
+            ensure_serve,
             get_history_path,
             save_history,
             load_history,
@@ -98,6 +99,39 @@ fn load_runtime_config(app: tauri::AppHandle) -> RuntimeConfig {
         .ok()
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_default()
+}
+
+/// 确保 Hermes serve 在运行：探测端口 → 缺失则用 config.json 的 token 拉起
+/// （桌宠自托管 serve——用户双击桌宠 = 一切就绪）
+#[tauri::command]
+fn ensure_serve(app: tauri::AppHandle) -> bool {
+    use std::net::TcpStream;
+    use std::process::Command;
+    use std::time::Duration;
+
+    let cfg = load_runtime_config(app);
+    let port = cfg.port.unwrap_or(9119);
+
+    // 探测 serve 已运行？
+    let addr = format!("127.0.0.1:{port}");
+    if let Ok(a) = addr.parse() {
+        if TcpStream::connect_timeout(&a, Duration::from_millis(300)).is_ok() {
+            return true; // 已有 serve，直接连
+        }
+    }
+
+    // 拉起 hermes serve（detached，独立生命周期）
+    let mut cmd = Command::new("hermes");
+    cmd.args(["serve", "--skip-build"]);
+    if let Some(t) = cfg.token {
+        cmd.env("HERMES_DASHBOARD_SESSION_TOKEN", t);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x0000_0008); // DETACHED_PROCESS
+    }
+    cmd.spawn().is_ok()
 }
 
 /// 会话历史存储（动态路径 app_data_dir，分发安全）

@@ -151,6 +151,13 @@ export function useChat(opts: {
 
   async function openChat() {
     if (chatOpen.value) return;
+    // 确保 Hermes serve 在运行（缺失则自动拉起——开箱即用）
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("ensure_serve");
+    } catch {
+      /* 无 Tauri 环境（浏览器调试）忽略 */
+    }
     chatOpen.value = true;
     opts.onEnterChat();
     setTimeout(() => {
