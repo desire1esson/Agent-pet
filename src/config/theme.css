@@ -1,0 +1,30 @@
+/**
+ * 主题令牌 —— 全局设计变量（换肤改这里）
+ * 皮肤 = 形象组件（sprites/），主题 = 颜色令牌（本文件）。
+ */
+:root {
+  /* 品牌色 */
+  --c-mint: #7dffa8;
+  --c-mint-soft: rgba(125, 255, 168, 0.15); /* 薄荷绿软底（标签背景等） */
+  --c-ink: #1c1c2e;
+  --c-body: #2a2a3e;
+  --c-paper: #ffffff;
+  --c-danger: #ff4757;
+  --c-warn: #ffd166;
+  --c-blush: #ff9ff3;
+  --c-bubble-other: #ffffff;
+  --c-bubble-me: #7dffa8;
+
+  /* 面板 */
+  --panel-alpha: 0.5;
+  --panel-bg: rgba(18, 18, 30, var(--panel-alpha));
+
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+
+  /* 漫画硬阴影 */
+  --shadow-hard: 4px 4px 0 rgba(0, 0, 0, 0.3);
+  --shadow-btn: 2px 2px 0 rgba(0, 0, 0, 0.2);
+}

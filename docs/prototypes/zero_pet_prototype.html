@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>零 · 桌宠交互原型</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh; overflow: hidden; color: #eaeaea;
+  }
+  /* 模拟桌面 */
+  #desktop {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(90,60,180,.15), transparent 40%),
+      radial-gradient(circle at 80% 20%, rgba(60,120,200,.12), transparent 40%);
+  }
+  .taskbar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 42px;
+    background: rgba(20,20,40,.85); backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; padding: 0 12px; gap: 8px; z-index: 5;
+  }
+  .taskbar .btn {
+    width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,.06);
+    display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;
+  }
+  .taskbar .btn:hover { background: rgba(255,255,255,.14); }
+  .taskbar .time { margin-left: auto; font-size: 12px; color: #888; }
+
+  /* 宠物 */
+  #pet-wrap {
+    position: fixed; bottom: 60px; right: 40px; width: 130px; height: 130px;
+    cursor: pointer; user-select: none; z-index: 10;
+    transition: transform .3s ease;
+  }
+  #pet-wrap:hover { transform: scale(1.06); }
+  #pet-wrap.dragging { cursor: grabbing; transform: scale(1.1); }
+
+  .pet { position: absolute; inset: 0; transition: all .4s ease; }
+
+  /* 零的卡通形象（极简黑色方块+眼睛） */
+  .zero-body {
+    position: absolute; width: 90px; height: 90px; left: 20px; bottom: 10px;
+    background: linear-gradient(160deg, #3a3a4a 0%, #1c1c28 100%);
+    border-radius: 38% 38% 42% 42%;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    transition: all .4s ease;
+  }
+  .zero-eye { position: absolute; width: 14px; height: 16px; background: #fff; border-radius: 50%; top: 32px; }
+  .zero-eye.l { left: 26px; } .zero-eye.r { right: 26px; }
+  .zero-pupil { position: absolute; width: 6px; height: 8px; background: #1a1a2e; border-radius: 50%; top: 5px; left: 5px; transition: all .2s; }
+  .zero-mouth { position: absolute; width: 20px; height: 6px; border-bottom: 2.5px solid rgba(255,255,255,.55); border-radius: 0 0 50% 50%; bottom: 22px; left: 35px; transition: all .3s; }
+  .zero-arm { position: absolute; width: 10px; height: 26px; background: #2a2a38; border-radius: 6px; bottom: 6px; transition: all .3s; }
+  .zero-arm.l { left: 6px; transform: rotate(12deg); }
+  .zero-arm.r { right: 6px; transform: rotate(-12deg); }
+
+  /* 状态：工作 */
+  #pet-wrap.working .zero-arm.l { transform: rotate(35deg) translateY(-6px); }
+  #pet-wrap.working .zero-arm.r { transform: rotate(-35deg) translateY(-6px); animation: tap .5s infinite alternate; }
+  @keyframes tap { from { transform: rotate(-20deg) translateY(0);} to { transform: rotate(-50deg) translateY(-10px);} }
+  #pet-wrap.working .zero-body { animation: bob .8s infinite alternate; }
+  @keyframes bob { from { transform: translateY(0);} to { transform: translateY(-4px);} }
+
+  /* 状态：思考 */
+  #pet-wrap.thinking .zero-eye { width: 13px; height: 13px; }
+  #pet-wrap.thinking .zero-mouth { height: 8px; border-bottom: none; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.55); border-left-color: transparent; border-right-color: transparent; }
+  .think-bubble {
+    position: absolute; top: -14px; left: -6px; width: 14px; height: 14px;
+    background: rgba(255,255,255,.12); border-radius: 50%;
+    animation: float 1.2s infinite; opacity: 0;
+  }
+  .think-bubble.b2 { left: -22px; width: 9px; height: 9px; animation-delay: .3s; }
+  .think-bubble.b3 { left: -34px; width: 6px; height: 6px; animation-delay: .6s; }
+  @keyframes float { 0%{opacity:0; transform:translateY(4px);} 50%{opacity:1;} 100%{opacity:0; transform:translateY(-8px);} }
+  #pet-wrap.thinking .think-bubble { opacity: 1; }
+
+  /* 状态：完成（跳起） */
+  #pet-wrap.done .zero-body { animation: jump .8s ease; }
+  @keyframes jump { 0%{transform:translateY(0);} 30%{transform:translateY(-34px);} 60%{transform:translateY(0);} 75%{transform:translateY(-14px);} 100%{transform:translateY(0);} }
+  #pet-wrap.done .zero-mouth { height: 10px; border-bottom: none; border-radius: 50%; border: 2.5px solid #7dffa8; }
+  .confetti { position:absolute; width:6px; height:10px; border-radius:2px; opacity:0; }
+  @keyframes confetti-fall { 0%{opacity:1; transform:translateY(0) rotate(0);} 100%{opacity:0; transform:translateY(70px) rotate(360deg);} }
+
+  /* 气泡 */
+  #bubble {
+    position: fixed; right: 200px; bottom: 210px; width: 380px;
+    background: rgba(28,28,44,.95); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.12); border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    display: none; z-index: 20; overflow: hidden;
+  }
+  #bubble.show { display: block; animation: pop .25s ease; }
+  @keyframes pop { from { transform: scale(.9) translateY(8px); opacity:0; } to { transform: scale(1); opacity:1; } }
+  .bubble-head {
+    padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: #aaa;
+  }
+  .bubble-head .dot { width: 8px; height: 8px; border-radius: 50%; background: #7dffa8; }
+  .bubble-head .close { margin-left:auto; cursor:pointer; color:#666; font-size:16px; }
+  .bubble-head .close:hover { color:#fff; }
+  #chatlog { padding: 12px 14px; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.5; }
+  .msg.user { align-self: flex-end; background: #3a5bd9; border-bottom-right-radius: 3px; }
+  .msg.zero { align-self: flex-start; background: rgba(255,255,255,.08); border-bottom-left-radius: 3px; }
+  .msg.tool { align-self: flex-start; background: rgba(125,255,168,.08); border: 1px solid rgba(125,255,168,.2); font-family: monospace; font-size: 12px; }
+  .msg .caret { display:inline-block; width:7px; background:#7dffa8; animation: blink .8s infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .bubble-input {
+    padding: 10px 14px; border-top: 1px solid rgba(255,255,255,.08); display: flex; gap: 8px;
+  }
+  .bubble-input input {
+    flex: 1; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px; padding: 8px 12px; color: #fff; font-size: 13px; outline: none;
+  }
+  .bubble-input input:focus { border-color: #3a5bd9; }
+  .bubble-input .send {
+    background: #3a5bd9; border: none; color: #fff; border-radius: 10px; padding: 0 16px;
+    font-size: 13px; cursor: pointer;
+  }
+
+  /* 确认气泡 */
+  #confirm {
+    position: fixed; right: 200px; bottom: 210px; width: 340px;
+    background: rgba(28,28,44,.97); border: 1px solid rgba(255,180,80,.3);
+    border-radius: 16px; box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    display: none; z-index: 21; padding: 16px;
+  }
+  #confirm.show { display: block; animation: pop .25s ease; }
+  #confirm .title { font-size: 14px; margin-bottom: 8px; display:flex; align-items:center; gap:6px; }
+  #confirm .desc { font-size: 12.5px; color: #bbb; margin-bottom: 12px; }
+  .confirm-btns { display: flex; gap: 8px; justify-content: flex-end; }
+  .confirm-btns button {
+    padding: 7px 16px; border-radius: 9px; border: none; font-size: 12.5px; cursor: pointer;
+  }
+  .btn-ghost { background: rgba(255,255,255,.1); color: #ddd; }
+  .btn-ok { background: #d9643a; color: #fff; }
+
+  /* 进度条 */
+  #progress {
+    position: fixed; right: 200px; bottom: 380px; width: 240px;
+    display: none; z-index: 15;
+  }
+  #progress.show { display: block; }
+  .prog-text { font-size: 12px; color: #aaa; margin-bottom: 6px; display:flex; justify-content:space-between; }
+  .prog-bar { height: 6px; background: rgba(255,255,255,.1); border-radius: 4px; overflow: hidden; }
+  .prog-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#3a5bd9,#7dffa8); border-radius: 4px; transition: width .4s; }
+
+  /* 展开模式（模拟完整界面） */
+  #full {
+    position: fixed; inset: 8%; background: rgba(18,18,32,.98);
+    border: 1px solid rgba(255,255,255,.1); border-radius: 20px;
+    display: none; z-index: 30; box-shadow: 0 20px 80px rgba(0,0,0,.7);
+    flex-direction: column; overflow: hidden;
+  }
+  #full.show { display: flex; animation: pop .3s ease; }
+  .full-head { padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: 10px; }
+  .full-head .title { font-size: 15px; font-weight: 600; }
+  .full-body { flex: 1; display: flex; }
+  .full-side { width: 220px; border-right: 1px solid rgba(255,255,255,.08); padding: 16px; font-size: 13px; color: #aaa; display:flex; flex-direction:column; gap:6px; }
+  .full-side .item { padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+  .full-side .item:hover { background: rgba(255,255,255,.06); }
+  .full-side .item.active { background: rgba(58,91,217,.25); color: #fff; }
+  .full-main { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 12px; overflow-y: auto; }
+  .full-main .banner {
+    background: linear-gradient(135deg, rgba(58,91,217,.2), rgba(125,255,168,.1));
+    border-radius: 14px; padding: 18px; font-size: 14px; line-height: 1.8;
+  }
+  .full-main .banner b { color: #7dffa8; }
+
+  /* 提示 */
+  #hint {
+    position: fixed; bottom: 60px; right: 190px; font-size: 12px; color: #666;
+    z-index: 8; text-align: right; line-height: 1.8;
+  }
+  #hint kbd { background: rgba(255,255,255,.08); padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="desktop"></div>
+<div id="hint">
+  单击零 → 对话<br>
+  发"整理桌面" → 看工作态+确认气泡<br>
+  双击零 → 展开完整模式<br>
+  <kbd>状态演示</kbd>: 空闲 · 工作 · 思考 · 完成
+</div>
+
+<!-- 进度条 -->
+<div id="progress">
+  <div class="prog-text"><span id="prog-label">正在扫描桌面文件…</span><span id="prog-pct">0%</span></div>
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+</div>
+
+<!-- 宠物 -->
+<div id="pet-wrap" title="零">
+  <div class="pet" id="pet">
+    <div class="think-bubble b1"></div>
+    <div class="think-bubble b2"></div>
+    <div class="think-bubble b3"></div>
+    <div class="zero-body">
+      <div class="zero-eye l"><div class="zero-pupil"></div></div>
+      <div class="zero-eye r"><div class="zero-pupil"></div></div>
+      <div class="zero-mouth"></div>
+      <div class="zero-arm l"></div>
+      <div class="zero-arm r"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 对话气泡 -->
+<div id="bubble">
+  <div class="bubble-head">
+    <span class="dot" id="status-dot"></span>
+    <span id="status-text">零 · 空闲</span>
+    <span class="close" onclick="hideBubble()">✕</span>
+  </div>
+  <div id="chatlog"></div>
+  <div class="bubble-input">
+    <input id="input" placeholder="和零说点什么…" />
+    <button class="send" onclick="sendMsg()">发送</button>
+  </div>
+</div>
+
+<!-- 确认气泡 -->
+<div id="confirm">
+  <div class="title">⚠️ 需要你确认</div>
+  <div class="desc" id="confirm-desc">发现 12 个可清理文件（共 3.2GB），包括临时缓存、回收站残留、重复下载。</div>
+  <div class="confirm-btns">
+    <button class="btn-ghost" onclick="confirm(false)">再看看</button>
+    <button class="btn-ok" onclick="confirm(true)">确认清理</button>
+  </div>
+</div>
+
+<!-- 完整模式 -->
+<div id="full">
+  <div class="full-head">
+    <span style="font-size:20px">⬡</span>
+    <span class="title">零 · 完整模式</span>
+    <span style="margin-left:auto; font-size:13px; color:#888">双击宠物可再次唤起</span>
+  </div>
+  <div class="full-body">
+    <div class="full-side">
+      <div class="item active">对话</div>
+      <div class="item">任务列表</div>
+      <div class="item">文件浏览器</div>
+      <div class="item">终端</div>
+      <div class="item">技能库</div>
+      <div class="item">设置</div>
+    </div>
+    <div class="full-main">
+      <div class="banner">
+        <b>零</b> —— 你的执行者与伙伴。<br><br>
+        桌面上的零只是冰山一角：这里才是完整工作台。<br>
+        ✅ 长对话 · 代码渲染 · 文件树 · 终端 · 任务看板<br>
+        ✅ 子 agent 实时窗口 · 模型切换 · 技能管理<br><br>
+        <span style="color:#888; font-size:12px">桌面气泡完成 80% 的日常，这里承接 20% 的重活。</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="taskbar">
+  <div class="btn">🏠</div>
+  <div class="btn">🔍</div>
+  <div class="time" id="clock"></div>
+</div>
+
+<script>
+  const petWrap = document.getElementById('pet-wrap');
+  const bubble = document.getElementById('bubble');
+  const chatlog = document.getElementById('chatlog');
+  const input = document.getElementById('input');
+  const confirmBox = document.getElementById('confirm');
+  const progress = document.getElementById('progress');
+  const full = document.getElementById('full');
+  const statusDot = document.getElementById('status-dot');
+  const statusText = document.getElementById('status-text');
+
+  let state = 'idle'; // idle | thinking | working | done
+  let busy = false;
+
+  function setState(s) {
+    state = s;
+    petWrap.className = '';
+    if (s === 'working') petWrap.classList.add('working');
+    if (s === 'thinking') petWrap.classList.add('thinking');
+    if (s === 'done') { petWrap.classList.add('done'); setTimeout(()=> setState('idle'), 1600); }
+    const label = { idle:'零 · 空闲', thinking:'零 · 思考中', working:'零 · 工作中', done:'零 · 完成！' };
+    statusText.textContent = label[s];
+    statusDot.style.background = s==='working' ? '#ffb04d' : s==='done' ? '#7dffa8' : s==='thinking' ? '#8ab4ff' : '#7dffa8';
+  }
+
+  function addMsg(role, text, tool=false) {
+    const m = document.createElement('div');
+    m.className = 'msg ' + (role === 'user' ? 'user' : tool ? 'tool' : 'zero');
+    m.innerHTML = text.replace(/\n/g, '<br>');
+    chatlog.appendChild(m);
+    chatlog.scrollTop = chatlog.scrollHeight;
+    return m;
+  }
+
+  function typeMsg(text, cb) {
+    const m = document.createElement('div');
+    m.className = 'msg zero';
+    m.innerHTML = '<span class="caret">&nbsp;</span>';
+    chatlog.appendChild(m);
+    chatlog.scrollTop = chatlog.scrollHeight;
+    let i = 0;
+    const timer = setInterval(() => {
+      i += 3;
+      m.innerHTML = text.slice(0, i).replace(/\n/g,'<br>') + '<span class="caret">&nbsp;</span>';
+      chatlog.scrollTop = chatlog.scrollHeight;
+      if (i >= text.length) { clearInterval(timer); m.innerHTML = text.replace(/\n/g,'<br>'); cb && cb(); }
+    }, 30);
+  }
+
+  function showProgress(label, duration, onDone) {
+    progress.classList.add('show');
+    document.getElementById('prog-label').textContent = label;
+    const fill = document.getElementById('prog-fill');
+    const pct = document.getElementById('prog-pct');
+    let p = 0;
+    const timer = setInterval(() => {
+      p += Math.random() * 7;
+      if (p >= 100) { p = 100; clearInterval(timer); }
+      fill.style.width = p + '%';
+      pct.textContent = Math.floor(p) + '%';
+      if (p >= 100) { setTimeout(()=>{ progress.classList.remove('show'); onDone && onDone(); }, 400); }
+    }, 200);
+  }
+
+  // 单击：开对话
+  petWrap.addEventListener('click', (e) => {
+    if (e.detail === 1 && !petWrap.classList.contains('dragging')) {
+      bubble.classList.toggle('show');
+      if (bubble.classList.contains('show')) input.focus();
+    }
+  });
+  // 双击：完整模式
+  petWrap.addEventListener('dblclick', () => {
+    bubble.classList.remove('show');
+    full.classList.add('show');
+    setState('idle');
+  });
+  document.getElementById('full').addEventListener('click', (e) => {
+    if (e.target === full || e.target.classList.contains('full-head')) {}
+  });
+  // 关闭完整模式
+  full.querySelector('.full-head').addEventListener('click', (e) => {
+    if (e.target.textContent === '✕') full.classList.remove('show');
+  });
+  full.querySelector('.full-head').insertAdjacentHTML('beforeend', '<span style="margin-left:8px; cursor:pointer; color:#666">✕</span>');
+  full.querySelector('.full-head span:last-child').addEventListener('click', () => full.classList.remove('show'));
+
+  // 拖拽
+  let dragging = false, ox, oy;
+  petWrap.addEventListener('mousedown', (e) => {
+    if (e.detail > 1) return;
+    dragging = true; ox = e.clientX - petWrap.offsetLeft; oy = e.clientY - petWrap.offsetTop;
+    petWrap.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    petWrap.style.left = (e.clientX - ox) + 'px';
+    petWrap.style.top = (e.clientY - oy) + 'px';
+    petWrap.style.right = 'auto';
+    petWrap.style.bottom = 'auto';
+  });
+  window.addEventListener('mouseup', () => { dragging = false; petWrap.classList.remove('dragging'); });
+
+  function hideBubble() { bubble.classList.remove('show'); }
+
+  function sendMsg() {
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    addMsg('user', text);
+
+    if (text.includes('整理') || text.includes('清理') || text.includes('扫描')) {
+      // 工作流程：思考 → 工作 → 确认 → 完成
+      setState('thinking');
+      typeMsg('好，我先看看桌面上有什么可整理的。', () => {
+        setTimeout(() => {
+          setState('working');
+          showProgress('正在扫描桌面文件…', 3000, () => {
+            addMsg('tool', 'scan_files → 发现 12 个可清理文件（3.2GB）', true);
+            confirmBox.classList.add('show');
+            bubble.classList.remove('show');
+            setState('idle');
+          });
+        }, 900);
+      });
+    } else if (text.includes('视频') || text.includes('生成')) {
+      setState('working');
+      addMsg('zero', '开始生成视频分镜，大约需要 4 分钟，完成后我会跳起来提醒你。');
+      showProgress('ComfyUI · 正在生成第 3/12 帧…', 4000, () => {
+        setState('done');
+        typeMsg('🎉 视频生成完成！共 12 帧，已输出到 output/video_v3.mp4');
+      });
+    } else {
+      setState('thinking');
+      setTimeout(() => {
+        typeMsg('嗯，我在。要我做点什么？（试试发送"整理桌面"或"生成视频"）');
+        setState('idle');
+      }, 600);
+    }
+  }
+
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMsg(); });
+
+  function confirm(ok) {
+    confirmBox.classList.remove('show');
+    if (ok) {
+      setState('working');
+      showProgress('正在清理（移到回收站）…', 2200, () => {
+        setState('done');
+        bubble.classList.add('show');
+        typeMsg('✅ 已清理 9 个文件，释放约 2.1GB。详情在完整模式里可以看。');
+      });
+    } else {
+      bubble.classList.add('show');
+      addMsg('zero', '好，我先不动它们。你可以双击我进完整模式看完整列表。');
+    }
+  }
+
+  // 时钟
+  function tick() {
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
+  }
+  tick(); setInterval(tick, 10000);
+
+  // 开场
+  setTimeout(() => {
+    bubble.classList.add('show');
+    typeMsg('嘿，枢。我是零。单击我对话，双击展开完整工作台。');
+  }, 800);
+</script>
+</body>
+</html>

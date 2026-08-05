@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>零 · 反差形象提案 v3</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei",sans-serif; background:#12121e; color:#eaeaea; padding:40px; }
+  h1 { font-size:24px; margin-bottom:6px; }
+  .sub { color:#888; font-size:13px; margin-bottom:30px; }
+  h2 { font-size:16px; margin:30px 0 14px; color:#aaa; border-left:3px solid #ffd166; padding-left:10px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3, 250px); gap:24px; }
+  @media (max-width:900px){ .grid-3{ grid-template-columns:1fr; } }
+  .card { background:#1c1c2e; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px; text-align:center; position:relative; }
+  .card .name { font-size:14px; margin-top:10px; color:#eee; font-weight:600; }
+  .card .desc { font-size:11.5px; color:#888; margin-top:6px; line-height:1.7; }
+  .tag { position:absolute; top:10px; right:10px; font-size:10px; padding:2px 8px; border-radius:10px; background:rgba(255,209,102,.15); color:#ffd166; }
+  svg { display:block; margin:0 auto; }
+
+  /* 反差台词气泡 */
+  .quote {
+    margin-top:12px; padding:10px 12px; background:rgba(255,255,255,.06);
+    border-radius:10px; font-size:12px; color:#ffd166; line-height:1.6;
+    border-left:3px solid #ffd166; text-align:left; font-style:italic;
+  }
+
+  /* 双形态切换演示 */
+  .morph-demo { display:flex; align-items:center; gap:30px; justify-content:center; padding:20px; }
+  .morph-btn { background:#ffd166; color:#12121e; border:none; border-radius:10px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; }
+  .morph-btn:hover { background:#ffe08a; }
+  .morph-label { font-size:13px; color:#888; text-align:center; margin-top:8px; }
+  .cute-eyes { transition: all .3s; }
+  .cute-eyes.scary { opacity:0; }
+  .scary-eyes { opacity:0; transition: all .3s; }
+  .scary-eyes.scary { opacity:1; }
+  .glow { filter: drop-shadow(0 0 6px rgba(255,60,60,.6)); }
+</style>
+</head>
+<body>
+
+<h1>⬡ 零 · 反差形象提案</h1>
+<div class="sub">概念：Q 萌 × 危险执行者。可爱是包装，"我能删你文件"才是内核。反差产生幽默。</div>
+
+<h2>提案 A：呆萌暴徒（死鱼眼 + 大扳手）</h2>
+<div class="grid-3">
+  <div class="card">
+    <span class="tag">A1 常态</span>
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      <g class="limb leg-l"><rect x="64" y="132" width="17" height="32" rx="8" fill="#2a2a3e"/></g>
+      <g class="limb leg-r"><rect x="119" y="132" width="17" height="32" rx="8" fill="#2a2a3e"/></g>
+      <g class="limb arm-l"><rect x="38" y="46" width="15" height="46" rx="7.5" fill="#2a2a3e" transform="rotate(10 45 66)"/></g>
+      <!-- 右手拎扳手 -->
+      <g class="limb arm-r"><rect x="147" y="44" width="15" height="44" rx="7.5" fill="#2a2a3e" transform="rotate(-14 154 64)"/></g>
+      <g transform="rotate(30 163 50)">
+        <rect x="156" y="44" width="9" height="34" rx="4" fill="#c9d1d9"/>
+        <circle cx="160" cy="42" r="8" fill="none" stroke="#c9d1d9" stroke-width="4.5"/>
+      </g>
+      <rect x="47" y="30" width="106" height="106" rx="35" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+      <!-- 呆萌圆眼（微微放空） -->
+      <ellipse cx="74" cy="72" rx="11" ry="10" fill="#eaeaea"/>
+      <ellipse cx="126" cy="72" rx="11" ry="10" fill="#eaeaea"/>
+      <circle cx="77" cy="70" r="4" fill="#12121e"/>
+      <circle cx="129" cy="70" r="4" fill="#12121e"/>
+      <circle cx="80" cy="66" r="1.6" fill="#fff"/>
+      <circle cx="132" cy="66" r="1.6" fill="#fff"/>
+      <!-- 呆萌小嘴 -->
+      <path d="M88 100 Q100 94 112 100" stroke="#eaeaea" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <!-- 创可贴（战斗痕迹） -->
+      <rect x="136" y="100" width="22" height="9" rx="4" fill="#7dffa8" transform="rotate(-18 147 104)"/>
+      <rect x="139" y="100" width="5" height="9" rx="2" fill="#2a5a3e" transform="rotate(-18 147 104)"/>
+      <rect x="150" y="100" width="5" height="9" rx="2" fill="#2a5a3e" transform="rotate(-18 147 104)"/>
+    </svg>
+    <div class="name">呆萌零</div>
+    <div class="desc">圆眼放空，拎着大扳手，身上带创可贴——人畜无害但身经百战</div>
+    <div class="quote">"我帮你清理了 3.2GB 临时文件，顺便删了个不用的旧项目。别问是哪个。"</div>
+  </div>
+</div>
+
+<h2>提案 B：黑客萌物（兜帽 + 终端道具）</h2>
+<div class="grid-3">
+  <div class="card">
+    <span class="tag">B1 黑客</span>
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      <g class="limb leg-l"><rect x="64" y="132" width="17" height="32" rx="8" fill="#2a2a3e"/></g>
+      <g class="limb leg-r"><rect x="119" y="132" width="17" height="32" rx="8" fill="#2a2a3e"/></g>
+      <g class="limb arm-l"><rect x="38" y="46" width="15" height="46" rx="7.5" fill="#2a2a3e" transform="rotate(10 45 66)"/></g>
+      <!-- 右手举终端窗口 -->
+      <g class="limb arm-r"><rect x="146" y="30" width="15" height="42" rx="7.5" fill="#2a2a3e" transform="rotate(-22 153 48)"/></g>
+      <!-- 终端窗口道具 -->
+      <g transform="rotate(8 168 30)">
+        <rect x="142" y="8" width="52" height="36" rx="6" fill="#0a0a12" stroke="#7dffa8" stroke-width="2"/>
+        <circle cx="150" cy="16" r="3" fill="#ff6b6b"/><circle cx="159" cy="16" r="3" fill="#ffd166"/><circle cx="168" cy="16" r="3" fill="#7dffa8"/>
+        <text x="148" y="34" font-family="monospace" font-size="10" fill="#7dffa8">rm -rf /</text>
+      </g>
+      <rect x="47" y="30" width="106" height="106" rx="35" fill="#1b1b2e" stroke="#8ab4ff" stroke-width="3"/>
+      <!-- 兜帽 -->
+      <path d="M50 50 Q100 22 150 50 L146 80 Q100 52 54 80 Z" fill="#12122a"/>
+      <path d="M50 74 Q100 92 150 74 L146 88 Q100 106 54 88 Z" fill="#12122a"/>
+      <!-- 兜帽下的半遮眼（神秘） -->
+      <ellipse cx="74" cy="76" rx="11" ry="9" fill="#eaeaea"/>
+      <ellipse cx="126" cy="76" rx="11" ry="9" fill="#eaeaea"/>
+      <circle cx="77" cy="74" r="4" fill="#12121e"/>
+      <circle cx="129" cy="74" r="4" fill="#12121e"/>
+      <path d="M88 104 Q100 99 112 104" stroke="#eaeaea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- 二进制背景字 -->
+      <text x="30" y="120" font-family="monospace" font-size="8" fill="#8ab4ff" opacity=".35">0110</text>
+      <text x="158" y="126" font-family="monospace" font-size="8" fill="#8ab4ff" opacity=".35">1011</text>
+    </svg>
+    <div class="name">黑客零</div>
+    <div class="desc">兜帽遮眼，举着终端小窗（rm -rf /）——萌脸干狠事</div>
+    <div class="quote">"我把那个 404 页面修好了。顺便扫了一下你邻居的 Wi-Fi，没别的意思。"</div>
+  </div>
+</div>
+
+<h2>提案 C：双形态（萌 ↔ 冷，危险操作时变身）</h2>
+<div class="card" style="width:100%; max-width:620px; margin:0 auto;">
+  <span class="tag">C1 双形态</span>
+  <div class="morph-demo">
+    <div>
+      <svg width="200" height="200" viewBox="0 0 200 200" id="morph-svg">
+        <!-- 四肢 -->
+        <g class="limb leg-l"><rect x="64" y="132" width="17" height="32" rx="8" fill="#2a2a3e"/></g>
+        <g class="limb leg-r"><rect x="119" y="132" width="17" height="32" rx="8" fill="#2a2a3e"/></g>
+        <g class="limb arm-l"><rect x="40" y="46" width="15" height="46" rx="7.5" fill="#2a2a3e" transform="rotate(10 47 66)"/></g>
+        <g class="limb arm-r"><rect x="145" y="46" width="15" height="46" rx="7.5" fill="#2a2a3e" transform="rotate(-10 152 66)"/></g>
+        <!-- 身体 -->
+        <rect id="morph-body" x="47" y="30" width="106" height="106" rx="35" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+        <!-- 萌眼 -->
+        <g class="cute-eyes" id="cute-eyes">
+          <ellipse cx="74" cy="72" rx="11" ry="10" fill="#eaeaea"/>
+          <ellipse cx="126" cy="72" rx="11" ry="10" fill="#eaeaea"/>
+          <circle cx="77" cy="70" r="4" fill="#12121e"/>
+          <circle cx="129" cy="70" r="4" fill="#12121e"/>
+          <circle cx="80" cy="66" r="1.6" fill="#fff"/>
+          <circle cx="132" cy="66" r="1.6" fill="#fff"/>
+        </g>
+        <!-- 冷眼（危险模式） -->
+        <g class="scary-eyes" id="scary-eyes">
+          <!-- 三角锐利眼 -->
+          <path d="M62 66 L84 66 L73 84 Z" fill="#ff6b6b"/>
+          <path d="M116 66 L138 66 L127 84 Z" fill="#ff6b6b"/>
+          <circle cx="73" cy="74" r="2" fill="#12121e"/>
+          <circle cx="127" cy="74" r="2" fill="#12121e"/>
+        </g>
+        <!-- 萌嘴 -->
+        <path class="cute-eyes" d="M88 100 Q100 94 112 100" stroke="#eaeaea" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- 冷嘴（歪嘴笑） -->
+        <path class="scary-eyes" d="M86 102 Q100 112 116 98" stroke="#ff6b6b" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="morph-label" id="morph-label">萌态：日常对话</div>
+    </div>
+    <div style="text-align:center;">
+      <button class="morph-btn" onclick="toggleMorph()">切换形态</button>
+      <div class="morph-label" style="margin-top:14px;">危险操作时<br>自动变身</div>
+      <div class="quote" style="margin-top:10px;">"确认删除 12 个文件？<br>——我说的是'确认'，<br>不是'再想想'。"</div>
+    </div>
+  </div>
+</div>
+
+<div class="sub" style="margin-top:36px;">
+  反差来源：可爱的形象 × 危险的行为/台词 × 冷漠的表情切换 = 幽默。<br>
+  可组合：A/B 的装扮 + C 的双形态机制 —— 例如"呆萌暴徒"日常萌态，执行 rm -rf 时秒切冷眼。
+</div>
+
+<script>
+let scary = false;
+function toggleMorph() {
+  scary = !scary;
+  const ce = document.getElementById('cute-eyes');
+  const se = document.getElementById('scary-eyes');
+  const body = document.getElementById('morph-body');
+  const label = document.getElementById('morph-label');
+  ce.classList.toggle('scary', scary);
+  se.classList.toggle('scary', scary);
+  body.classList.toggle('glow', scary);
+  body.setAttribute('stroke', scary ? '#ff6b6b' : '#7dffa8');
+  label.textContent = scary ? '冷态：危险操作中' : '萌态：日常对话';
+}
+</script>
+</body>
+</html>

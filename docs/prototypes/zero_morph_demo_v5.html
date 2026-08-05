@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>零 · 精细像素小人 v5（GBA级）</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei",sans-serif; background:#0e0e18; color:#eaeaea; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:30px; }
+  h1 { font-size:22px; margin-bottom:4px; }
+  .sub { color:#888; font-size:13px; margin-bottom:22px; }
+
+  .stage { width:520px; height:520px; background:radial-gradient(circle at 50% 42%, #14142c, #08080f); border-radius:20px; border:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  svg { display:block; }
+
+  .controls { display:flex; gap:14px; margin-top:22px; }
+  .btn { padding:12px 30px; border-radius:12px; border:none; font-size:15px; font-weight:700; cursor:pointer; }
+  .btn-primary { background:#00fff7; color:#0e0e18; }
+  .btn-ghost { background:rgba(255,255,255,.1); color:#ddd; }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .status { margin-top:14px; font-size:13px; color:#888; min-height:22px; text-align:center; }
+  .timeline { margin-top:8px; font-size:11px; color:#555; max-width:460px; text-align:center; line-height:1.8; }
+
+  /* Q版萌物 */
+  .q-part { transition: all .3s ease; }
+  .exploding .q-body, .exploding .q-eye, .exploding .q-mouth { opacity:0; transform:scale(1.2); }
+  .exploding .q-leg-l { opacity:0; transform:translate(-26px,18px) rotate(-28deg); }
+  .exploding .q-leg-r { opacity:0; transform:translate(26px,18px) rotate(28deg); }
+  .exploding .q-arm-l { opacity:0; transform:rotate(150deg) translate(-8px,-16px); }
+  .exploding .q-arm-r { opacity:0; transform:rotate(-150deg) translate(8px,-16px); }
+
+  .flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; }
+  .exploding .flash { animation: flash-blink .45s ease .2s 2; }
+  @keyframes flash-blink { 0%{opacity:0;} 25%{opacity:.9;} 50%{opacity:0;} 100%{opacity:0;} }
+  .eyecharge { position:absolute; width:140px; height:140px; left:50%; top:42%; margin-left:-70px; margin-top:-70px; border-radius:50%; opacity:0; background:radial-gradient(circle, rgba(0,255,247,.55), transparent 70%); }
+  .exploding .eyecharge { animation: charge .5s ease .05s forwards; }
+  @keyframes charge { 0%{opacity:0; transform:scale(.3);} 60%{opacity:.9;} 100%{opacity:0; transform:scale(1.5);} }
+  .shake { animation:none; }
+  .exploding .shake { animation: body-shake .4s ease .15s; }
+  @keyframes body-shake { 0%,100%{transform:translate(0);} 20%{transform:translate(-3px,1px);} 40%{transform:translate(3px,-1px);} 60%{transform:translate(-2px,-1px);} 80%{transform:translate(2px,1px);} }
+
+  /* 像素粒子 */
+  .px { opacity:0; transition: transform .34s cubic-bezier(.2,.75,.25,1.2), opacity .1s ease; }
+  .cyborg .px { opacity:1; transform: translate(0,0) !important; }
+
+  .burst { position:absolute; width:420px; height:420px; border-radius:50%; opacity:0; pointer-events:none; background:radial-gradient(circle, rgba(0,255,247,.5), rgba(255,0,230,.12) 45%, transparent 70%); }
+  .cyborg .burst { animation: burst-out .6s ease 1.1s forwards; }
+  @keyframes burst-out { 0%{opacity:0; transform:scale(.2);} 30%{opacity:1;} 100%{opacity:0; transform:scale(2.4);} }
+  .ring { position:absolute; width:260px; height:260px; border:2px solid rgba(0,255,247,.65); border-radius:50%; opacity:0; }
+  .cyborg .ring { animation: ring-out .7s ease 1.05s forwards; }
+  @keyframes ring-out { 0%{opacity:0; transform:scale(.3);} 40%{opacity:.9;} 100%{opacity:0; transform:scale(1.9);} }
+  .finish-glow { position:absolute; inset:-30px; background:radial-gradient(circle at 50% 42%, rgba(0,255,247,.22), transparent 60%); opacity:0; pointer-events:none; transition:opacity .6s 1.2s; }
+  .cyborg .finish-glow { opacity:.5; }
+  .cyborg .px-glow { animation: pixel-breathe 2.6s ease-in-out infinite; }
+  @keyframes pixel-breathe { 0%,100%{filter:drop-shadow(0 0 2px rgba(0,255,247,.4));} 50%{filter:drop-shadow(0 0 9px rgba(0,255,247,.9));} }
+  .scanlines { position:absolute; inset:0; pointer-events:none; opacity:0; background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.18) 3px 4px); }
+  .cyborg .scanlines { opacity:.6; transition:opacity .5s 1.3s; }
+
+  /* 彩蛋 */
+  .derp .px { animation: pixel-sneeze .5s ease; }
+  @keyframes pixel-sneeze { 0%,100%{transform:translate(0);} 20%{transform:translate(-2px,-3px);} 40%{transform:translate(2px,-2px);} 60%{transform:translate(-1px,1px);} 80%{transform:translate(1px,1px);} }
+  .derp .px-eye-cyborg { opacity:0 !important; }
+  .px-eye-cyborg { transition:opacity .2s; }
+  .derp .px-eye-round { opacity:1 !important; }
+  .px-eye-round { opacity:0; }
+  .derp-bubble { position:absolute; top:60px; left:calc(50% + 50px); background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); padding:6px 12px; border-radius:14px; font-size:13px; color:#00fff7; opacity:0; transform:translateY(6px); }
+  .derp .derp-bubble { animation: pop-in .35s ease 1.15s forwards; }
+  @keyframes pop-in { to { opacity:1; transform:translateY(0);} }
+  .glitch { position:absolute; inset:0; pointer-events:none; opacity:0; background:linear-gradient(transparent 30%, rgba(0,255,247,.12) 30%, rgba(0,255,247,.12) 33%, transparent 33%, transparent 66%, rgba(255,0,230,.12) 66%, rgba(255,0,230,.12) 70%, transparent 70%); }
+  .derp .glitch { animation: glitch-flicker .4s steps(2) .15s 3; }
+  @keyframes glitch-flicker { 0%{opacity:0;} 50%{opacity:.3;} 100%{opacity:0;} }
+</style>
+</head>
+<body>
+
+<h1>⬡ 零 · 精细像素小人 v5（GBA 级）</h1>
+<div class="sub">程序化像素绘制 · 32px 宽角色 · 五阶光影 · 护目镜 · 肩甲 · 发光能量剑 · 像素光晕</div>
+
+<div class="stage" id="stage">
+  <div class="scanlines"></div>
+  <div class="finish-glow"></div>
+  <div class="burst"></div>
+  <div class="ring"></div>
+  <div class="flash"></div>
+  <div class="eyecharge"></div>
+  <div class="glitch"></div>
+  <div class="derp-bubble">阿嚏！…剑差点没握住。</div>
+
+  <svg id="svgRoot" width="470" height="470" viewBox="0 0 220 220">
+    <!-- Q版萌物 -->
+    <g id="qGroup" class="shake">
+      <g class="q-part">
+        <rect class="q-leg-l" x="60" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/>
+        <rect class="q-leg-r" x="144" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/>
+        <g class="q-arm-l"><rect x="34" y="40" width="14" height="44" rx="7" fill="#2a2a3e"/></g>
+        <g class="q-arm-r"><rect x="172" y="40" width="14" height="44" rx="7" fill="#2a2a3e"/></g>
+        <rect class="q-body" x="42" y="26" width="136" height="136" rx="42" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+        <g class="q-eye">
+          <ellipse cx="74" cy="72" rx="11" ry="10" fill="#eaeaea"/>
+          <ellipse cx="146" cy="72" rx="11" ry="10" fill="#eaeaea"/>
+          <circle cx="77" cy="70" r="4" fill="#12121e"/>
+          <circle cx="149" cy="70" r="4" fill="#12121e"/>
+          <circle cx="80" cy="66" r="1.6" fill="#fff"/>
+          <circle cx="152" cy="66" r="1.6" fill="#fff"/>
+        </g>
+        <path class="q-mouth" d="M98 100 Q110 94 122 100" stroke="#eaeaea" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </g>
+    </g>
+    <!-- 精细像素小人（程序绘制） -->
+    <g id="pixelGroup"></g>
+  </svg>
+</div>
+
+<div class="controls">
+  <button class="btn btn-primary" id="btnMorph" onclick="morph()">⚡ 变身！</button>
+  <button class="btn btn-ghost" id="btnRevert" onclick="revert()" disabled>变回去</button>
+</div>
+<div class="status" id="status">形态：Q版萌物 · 日常</div>
+<div class="timeline">像素小人：32px 宽 · 五阶青色光影 · 发光护目镜 · 肩甲/手套/腰带分层 · 品红电路 · 右手像素能量剑（霓虹呼吸）· CRT 扫描线</div>
+
+<script>
+// ═══════════ 程序化精细像素绘制 ═══════════
+const C = {
+  K: '#10101c',   // 暗底/描边
+  A: '#0c3836',   // 深青
+  B: '#0e8f88',   // 中青
+  D: '#00fff7',   // 亮青（主色）
+  E: '#d8fffb',   // 高光
+  M: '#ff00e6',   // 品红
+  P: '#5e0057',   // 暗品红
+  W: '#ffffff',
+  N: '#2a3050',   // 暗金属（肩甲/手套）
+};
+const PXS = 2.5; // 像素单元
+
+const rects = []; // 收集 {x,y,w,h,color}
+
+function px(x, y, w=1, h=1, color=C.D) {
+  rects.push({ x: x*PXS, y: y*PXS, w: w*PXS-0.3, h: h*PXS-0.3, color, gridX:x, gridY:y });
+}
+
+// ─── 坐标系统：角色 32 列 x 40 行，原点 grid(66, 30) → SVG 居中 ───
+const OX = 66, OY = 26;
+
+// ============ 头部（16x14） ============
+// 盔冠/发冠（青色能量冠）
+px(7,0,2,1,C.D); px(9,0,2,1,C.E); px(11,0,2,1,C.D); px(13,0,2,1,C.E); px(15,0,2,1,C.D);
+px(6,1,4,1,C.B); px(10,1,4,1,C.D); px(14,1,4,1,C.B);
+// 头顶
+px(4,2,2,1,C.A); px(6,2,4,1,C.B); px(10,2,4,1,C.D); px(14,2,2,1,C.B); px(16,2,2,1,C.A);
+px(3,3,2,1,C.A); px(5,3,6,1,C.B); px(11,3,6,1,C.D); px(17,3,2,1,C.A);
+px(3,4,1,2,C.K); px(4,4,6,1,C.B); px(10,4,6,1,C.D); px(16,4,1,2,C.K);
+// 护目镜带
+px(2,5,2,1,C.K); px(4,5,4,1,C.B); px(8,5,8,1,C.D); px(16,5,4,1,C.B); px(20,5,2,1,C.K);
+// 护目镜镜片（亮青发光）
+px(3,6,5,2,C.K); px(4,6,3,1,C.D); px(5,7,1,1,C.E); px(8,6,8,2,C.D); px(9,7,2,1,C.E); px(13,7,2,1,C.E);
+px(16,6,5,2,C.K); px(17,6,3,1,C.D); px(18,7,1,1,C.E);
+// 脸颊
+px(3,8,2,1,C.A); px(5,8,6,1,C.B); px(11,8,6,1,C.D); px(17,8,2,1,C.A);
+px(4,9,1,1,C.K); px(5,9,6,1,C.B); px(11,9,6,1,C.D); px(17,9,1,1,C.K);
+// 下巴/嘴部品红能量线
+px(5,10,6,1,C.B); px(11,10,6,1,C.D); px(8,10,2,1,C.M); px(14,10,2,1,C.M);
+px(6,11,1,1,C.K); px(7,11,10,1,C.B); px(17,11,1,1,C.K);
+
+// ============ 肩甲（超出身体两侧） ============
+px(1,12,2,2,C.N); px(3,12,2,1,C.D); px(5,12,2,1,C.E);
+px(23,12,2,2,C.N); px(25,12,2,1,C.D); px(27,12,2,1,C.E);
+px(1,14,2,1,C.N); px(23,14,2,1,C.N);
+
+// ============ 身体（24x12） ============
+// 外框暗色
+px(2,12,1,12,C.K); px(21,12,1,12,C.K);
+// 主装甲（分层：暗→中→亮）
+for (let r=12; r<24; r++) {
+  px(3,r,4,1,C.A); px(7,r,4,1,C.B); px(11,r,4,1,C.D); px(15,r,4,1,C.E); px(19,r,4,1,C.D);
+}
+// 胸口能量核心（品红）
+px(8,14,3,2,C.P); px(9,14,1,1,C.M); px(11,14,3,2,C.P); px(12,14,1,1,C.M);
+px(10,16,2,1,C.M); px(11,16,1,1,C.E);
+// 电路线（品红点缀）
+px(5,17,3,1,C.P); px(16,17,3,1,C.P); px(6,17,1,1,C.M); px(17,17,1,1,C.M);
+// 腰带
+px(2,18,1,1,C.K); px(3,18,18,1,C.N); px(21,18,1,1,C.K);
+px(9,19,6,1,C.D); px(10,19,4,1,C.E); px(11,19,2,1,C.W);
+// 下摆
+px(3,20,18,1,C.B); px(4,21,1,1,C.K); px(5,21,14,1,C.A); px(19,21,1,1,C.K);
+px(4,22,2,1,C.K); px(6,22,12,1,C.A); px(18,22,2,1,C.K);
+px(5,23,2,1,C.K); px(7,23,10,1,C.A); px(17,23,2,1,C.K);
+
+// ============ 手臂（各 4 宽） ============
+// 左臂（持剑方向朝右，左臂垂握）
+px(0,13,1,2,C.K); px(1,13,2,1,C.B); px(3,13,1,2,C.K);
+px(1,15,2,1,C.D); px(1,16,2,1,C.B); px(1,17,2,1,C.D);
+px(0,18,1,1,C.K); px(1,18,2,1,C.N); px(3,18,1,1,C.K);   // 手套
+// 右臂（握剑）
+px(24,13,1,2,C.K); px(25,13,2,1,C.B); px(27,13,1,2,C.K);
+px(25,15,2,1,C.D); px(25,16,2,1,C.B); px(25,17,2,1,C.D);
+px(24,18,1,1,C.K); px(25,18,2,1,C.N); px(27,18,1,1,C.K); // 手套
+
+// ============ 能量剑（右手，4 宽 x 16 高，斜举） ============
+px(26,2,1,1,C.E); px(27,2,1,1,C.D); px(28,2,1,1,C.M);
+px(27,3,1,1,C.D); px(28,3,1,1,C.M); px(29,3,1,1,C.D);
+for (let r=4; r<12; r++) {
+  px(28,r,1,1,C.D); px(29,r,1,1,C.E); px(30,r,1,1,C.D);
+}
+px(28,12,1,1,C.M); px(29,12,1,1,C.D);
+// 剑格
+px(26,13,6,1,C.N); px(28,13,2,1,C.D);
+// 剑柄
+px(28,14,1,1,C.N); px(29,14,1,1,C.N);
+
+// ============ 腿（各 6 宽 x 10 高） ============
+// 左腿
+px(6,24,6,1,C.B);
+for (let r=25; r<30; r++) { px(6,r,2,1,C.A); px(8,r,2,1,C.B); px(10,r,2,1,C.D); }
+px(7,30,4,1,C.K); px(8,30,2,1,C.D); px(9,30,1,1,C.E);   // 发光关节
+px(6,31,6,1,C.B); px(7,32,4,1,C.D);
+px(6,33,2,1,C.K); px(8,33,2,1,C.B); px(10,33,2,1,C.K);  // 靴
+px(5,34,8,1,C.N); px(6,34,2,1,C.D);                     // 靴底发光
+// 右腿
+px(18,24,6,1,C.B);
+for (let r=25; r<30; r++) { px(18,r,2,1,C.D); px(20,r,2,1,C.B); px(22,r,2,1,C.A); }
+px(19,30,4,1,C.K); px(20,30,2,1,C.D); px(21,30,1,1,C.E);
+px(18,31,6,1,C.B); px(19,32,4,1,C.D);
+px(18,33,2,1,C.K); px(20,33,2,1,C.B); px(22,33,2,1,C.K);
+px(17,34,8,1,C.N); px(20,34,2,1,C.D);
+
+// ============ 渲染 ============
+function render() {
+  const g = document.getElementById('pixelGroup');
+  const cx = 110, cy = 100;
+  let maxDelay = 0;
+  rects.forEach(p => {
+    const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    r.setAttribute('x', OX + p.x); r.setAttribute('y', OY + p.y);
+    r.setAttribute('width', p.w); r.setAttribute('height', p.h);
+    r.setAttribute('fill', p.color);
+    // 眼睛/剑尖高光 → 霓虹
+    if (p.color === C.E && (p.gridY < 8)) r.classList.add('px-eye-cyborg', 'px-glow');
+    if (p.color === C.D && p.gridX >= 26 && p.gridY < 13) r.classList.add('px-glow');
+    // 彩蛋圆眼（护目镜位置）
+    if (p.color === C.E && p.gridY >= 6 && p.gridY <= 7) {
+      const ex = OX + p.x + PXS/2, ey = OY + p.y + PXS/2;
+      const side = ex < 110 ? -1 : 1;
+      const round = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      round.setAttribute('cx', ex + side*2.5); round.setAttribute('cy', ey);
+      round.setAttribute('rx', 4.2); round.setAttribute('ry', 4.6);
+      round.setAttribute('fill', '#eaeaea'); round.classList.add('px-eye-round');
+      g.appendChild(round);
+      const pupil = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      pupil.setAttribute('cx', ex + side*2.5); pupil.setAttribute('cy', ey);
+      pupil.setAttribute('r', 1.8); pupil.setAttribute('fill', '#12121e');
+      pupil.classList.add('px-eye-round');
+      g.appendChild(pupil);
+    }
+    const dist = Math.hypot(p.x - cx + OX, p.y - cy + OY);
+    const delay = dist / 230 * 1.5 + Math.random() * 0.15;
+    maxDelay = Math.max(maxDelay, delay);
+    const ang = Math.atan2((p.y + OY) - cy, (p.x + OX) - cx);
+    const flyDist = 320 + Math.random() * 90;
+    r.style.transform = `translate(${Math.cos(ang)*flyDist}px, ${Math.sin(ang)*flyDist}px)`;
+    r.style.transitionDelay = delay + 's';
+    r.classList.add('px');
+    g.appendChild(r);
+  });
+  return maxDelay;
+}
+render();
+
+const stage = document.getElementById('stage');
+const status = document.getElementById('status');
+const btnMorph = document.getElementById('btnMorph');
+const btnRevert = document.getElementById('btnRevert');
+let busy = false;
+
+function morph() {
+  if (busy) return;
+  busy = true; btnMorph.disabled = true; btnRevert.disabled = true;
+  status.textContent = '变身启动…';
+  stage.classList.remove('cyborg', 'derp');
+  stage.classList.add('exploding');
+  setTimeout(() => {
+    stage.classList.remove('exploding');
+    stage.classList.add('cyborg');
+    status.textContent = '形态：精细像素小人 · 危险模式（保持3秒…）';
+    btnRevert.disabled = false;
+    busy = false;
+    setTimeout(() => {
+      if (stage.classList.contains('cyborg')) {
+        stage.classList.add('derp');
+        status.textContent = '…阿嚏！剑差点没握住';
+        setTimeout(() => {
+          stage.classList.remove('derp');
+          status.textContent = '形态：精细像素小人（剑已握稳，刚才是静电）';
+        }, 1900);
+      }
+    }, 3400);
+  }, 900);
+}
+
+function revert() {
+  if (busy) return;
+  busy = true; btnMorph.disabled = true; btnRevert.disabled = true;
+  status.textContent = '解除变身…';
+  stage.classList.remove('cyborg', 'derp', 'exploding');
+  setTimeout(() => {
+    status.textContent = '形态：Q版萌物 · 日常（刚才那个不是我）';
+    btnMorph.disabled = false;
+    busy = false;
+  }, 300);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>零 · 卡布达式变身动画演示</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei",sans-serif; background:#0e0e18; color:#eaeaea; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:30px; }
+  h1 { font-size:22px; margin-bottom:4px; }
+  .sub { color:#888; font-size:13px; margin-bottom:22px; }
+
+  .stage {
+    width: 440px; height: 440px; background: radial-gradient(circle at 50% 40%, #1a1a30, #0a0a14);
+    border-radius: 20px; border: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+  }
+  svg { display:block; }
+
+  .controls { display:flex; gap:14px; margin-top:22px; align-items:center; }
+  .btn {
+    padding: 12px 30px; border-radius: 12px; border:none; font-size:15px; font-weight:700; cursor:pointer;
+    transition: transform .15s;
+  }
+  .btn:hover { transform: scale(1.05); }
+  .btn-primary { background:#7dffa8; color:#0e0e18; }
+  .btn-ghost { background:rgba(255,255,255,.1); color:#ddd; }
+  .status { margin-top:14px; font-size:13px; color:#888; min-height:20px; }
+  .timeline { margin-top:10px; font-size:11px; color:#555; }
+
+  /* ============ 变身动画（CSS 部件变换） ============ */
+
+  /* ---- 基础部件（Q版与赛博版共存，通过 class 切换） ---- */
+  .part { transition: transform .35s cubic-bezier(.6,-0.3,.3,1.4), opacity .3s; }
+
+  /* Q版部件（默认显示） */
+  .q-arm-l { transform: rotate(10deg); transform-origin: 40px 60px; }
+  .q-arm-r { transform: rotate(-10deg); transform-origin: 180px 60px; }
+  .q-leg-l, .q-leg-r { transform: translateY(0); }
+  .q-eye { opacity: 1; }
+  .q-body { opacity: 1; }
+
+  /* 赛博部件（默认隐藏） */
+  .c-arm-l, .c-arm-r, .c-leg-l, .c-leg-r, .c-eye, .c-seam, .c-core, .c-armor { opacity: 0; transform: scale(.3); }
+  .c-arm-l { transform-origin: 44px 78px; }
+  .c-arm-r { transform-origin: 176px 78px; }
+  .c-leg-l { transform-origin: 78px 148px; }
+  .c-leg-r { transform-origin: 142px 148px; }
+
+  /* ---- 变身状态：Q版收，赛博展 ---- */
+  .cyborg .q-body { opacity: 0; }
+  .cyborg .q-eye { opacity: 0; }
+  .cyborg .q-arm-l { transform: rotate(120deg) translateY(-14px); opacity: 0; }
+  .cyborg .q-arm-r { transform: rotate(-120deg) translateY(-14px); opacity: 0; }
+  .cyborg .q-leg-l { transform: translateY(26px); opacity: 0; }
+  .cyborg .q-leg-r { transform: translateY(26px); opacity: 0; }
+
+  .cyborg .c-arm-l { opacity: 1; transform: scale(1) rotate(-6deg); }
+  .cyborg .c-arm-r { opacity: 1; transform: scale(1) rotate(6deg); }
+  .cyborg .c-leg-l { opacity: 1; transform: scale(1); }
+  .cyborg .c-leg-r { opacity: 1; transform: scale(1); }
+  .cyborg .c-eye { opacity: 1; transform: scale(1); }
+  .cyborg .c-seam { opacity: .75; transform: scale(1); }
+  .cyborg .c-core { opacity: 1; transform: scale(1); }
+  .cyborg .c-armor { opacity: 1; transform: scale(1) rotate(var(--rot, 0deg)); }
+
+  /* 装甲片各自旋转方向 */
+  .armor-a { --rot: 0deg; transform-origin: 110px 40px; }
+  .armor-b { --rot: 0deg; transform-origin: 185px 110px; }
+  .armor-c { --rot: 0deg; transform-origin: 110px 180px; }
+  .armor-d { --rot: 0deg; transform-origin: 35px 110px; }
+
+  /* ---- 变身瞬间特效 ---- */
+  .flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; }
+  .transforming .flash { animation: flash-blink .5s ease .55s 2; }
+  @keyframes flash-blink { 0%{opacity:0;} 25%{opacity:.85;} 50%{opacity:0;} 100%{opacity:0;} }
+
+  .eyeglow { opacity:0; }
+  .transforming .eyeglow { animation: eye-charge .6s ease .1s forwards; }
+  @keyframes eye-charge { 0%{opacity:0;} 60%{opacity:.9;} 100%{opacity:0;} }
+
+  .shake { animation: none; }
+  .transforming .shake { animation: body-shake .4s ease .35s; }
+  @keyframes body-shake { 0%,100%{transform:translate(0);} 20%{transform:translate(-3px,1px);} 40%{transform:translate(3px,-1px);} 60%{transform:translate(-2px,-1px);} 80%{transform:translate(2px,1px);} }
+
+  .burst { position:absolute; width:340px; height:340px; border-radius:50%; opacity:0; pointer-events:none;
+    background: radial-gradient(circle, rgba(125,255,168,.55), rgba(125,255,168,.12) 45%, transparent 70%); }
+  .transforming .burst { animation: burst-out .6s ease 1.9s forwards; }
+  @keyframes burst-out { 0%{opacity:0; transform:scale(.2);} 30%{opacity:1;} 100%{opacity:0; transform:scale(2.6);} }
+
+  .ring { position:absolute; width:200px; height:200px; border:2px solid rgba(125,255,168,.6); border-radius:50%; opacity:0; }
+  .transforming .ring { animation: ring-out .7s ease 1.85s forwards; }
+  @keyframes ring-out { 0%{opacity:0; transform:scale(.3);} 40%{opacity:.9;} 100%{opacity:0; transform:scale(2.2);} }
+
+  .spark { position:absolute; width:6px; height:12px; border-radius:2px; background:#7dffa8; opacity:0; }
+  .spark.s1 { top:60px; left:60px; } .spark.s2 { top:90px; right:70px; } .spark.s3 { bottom:80px; left:90px; }
+  .spark.s4 { bottom:60px; right:60px; } .spark.s5 { top:140px; left:40px; }
+  .transforming .spark { animation: spark-fly .8s ease 2s forwards; }
+  .transforming .spark.s2 { animation-delay: 2.08s; }
+  .transforming .spark.s3 { animation-delay: 2.15s; }
+  .transforming .spark.s4 { animation-delay: 2.05s; }
+  .transforming .spark.s5 { animation-delay: 2.12s; }
+  @keyframes spark-fly { 0%{opacity:1; transform:translate(0,0) rotate(0);} 100%{opacity:0; transform:translate(var(--dx,30px), var(--dy,-40px)) rotate(220deg);} }
+  .spark.s1 { --dx:-50px; --dy:-30px; } .spark.s2 { --dx:45px; --dy:-20px; }
+  .spark.s3 { --dx:-35px; --dy:40px; } .spark.s4 { --dx:50px; --dy:30px; } .spark.s5 { --dx:-60px; --dy:-10px; }
+
+  /* 完成定格辉光 */
+  .cyborg .finish-glow { opacity:.35; transition: opacity .5s 2.2s; }
+  .finish-glow { position:absolute; inset:-30px; background: radial-gradient(circle at 50% 42%, rgba(125,255,168,.28), transparent 60%); opacity:0; pointer-events:none; }
+
+  /* 变身过程中锁定按钮 */
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+</style>
+</head>
+<body>
+
+<h1>⬡ 零 · 卡布达式变身</h1>
+<div class="sub">特摄机械展开变身 —— Q版 ⇄ 赛博义体</div>
+
+<div class="stage" id="stage">
+  <div class="finish-glow"></div>
+  <div class="burst"></div>
+  <div class="ring"></div>
+  <div class="flash"></div>
+  <div class="spark s1"></div><div class="spark s2"></div><div class="spark s3"></div><div class="spark s4"></div><div class="spark s5"></div>
+
+  <svg width="380" height="380" viewBox="0 0 220 220">
+    <defs>
+      <linearGradient id="gMetal" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#3a4052"/><stop offset=".6" stop-color="#222636"/><stop offset="1" stop-color="#14161f"/>
+      </linearGradient>
+      <radialGradient id="gCore">
+        <stop offset="0" stop-color="#eafff3"/><stop offset=".45" stop-color="#7dffa8"/><stop offset="1" stop-color="#7dffa8" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- ══════ Q版部件 ══════ -->
+    <g id="root">
+      <!-- Q腿 -->
+      <rect class="part q-leg-l" x="60" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/>
+      <rect class="part q-leg-r" x="144" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/>
+      <!-- Q臂 -->
+      <g class="part q-arm-l"><rect x="34" y="40" width="14" height="44" rx="7" fill="#2a2a3e"/></g>
+      <g class="part q-arm-r"><rect x="172" y="40" width="14" height="44" rx="7" fill="#2a2a3e"/></g>
+      <!-- Q身体 -->
+      <rect class="part q-body" x="42" y="26" width="136" height="136" rx="42" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+      <!-- Q眼 -->
+      <g class="part q-eye">
+        <ellipse cx="74" cy="72" rx="11" ry="10" fill="#eaeaea"/>
+        <ellipse cx="146" cy="72" rx="11" ry="10" fill="#eaeaea"/>
+        <circle cx="77" cy="70" r="4" fill="#12121e"/>
+        <circle cx="149" cy="70" r="4" fill="#12121e"/>
+        <circle cx="80" cy="66" r="1.6" fill="#fff"/>
+        <circle cx="152" cy="66" r="1.6" fill="#fff"/>
+      </g>
+      <!-- Q嘴 -->
+      <path class="part q-eye" d="M98 100 Q110 94 122 100" stroke="#eaeaea" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+      <!-- ══════ 赛博部件（变身展开） ══════ -->
+
+      <!-- 机械腿 -->
+      <g class="part c-leg-l">
+        <rect x="66" y="134" width="18" height="14" rx="4" fill="url(#gMetal)" stroke="#4a5064" stroke-width="1.5"/>
+        <circle cx="75" cy="150" r="5.5" fill="#262a3a" stroke="#7dffa8" stroke-width="1.2"/>
+        <rect x="70" y="154" width="10" height="24" rx="3" fill="url(#gMetal)"/>
+        <path d="M64 178 L75 168 L86 178" fill="none" stroke="#7dffa8" stroke-width="1.5"/>
+      </g>
+      <g class="part c-leg-r">
+        <rect x="136" y="134" width="18" height="14" rx="4" fill="url(#gMetal)" stroke="#4a5064" stroke-width="1.5"/>
+        <circle cx="145" cy="150" r="5.5" fill="#262a3a" stroke="#7dffa8" stroke-width="1.2"/>
+        <rect x="140" y="154" width="10" height="24" rx="3" fill="url(#gMetal)"/>
+        <path d="M134 178 L145 168 L156 178" fill="none" stroke="#7dffa8" stroke-width="1.5"/>
+      </g>
+
+      <!-- 机械臂（从身体两侧翻出） -->
+      <g class="part c-arm-l">
+        <rect x="26" y="56" width="16" height="44" rx="6" fill="url(#gMetal)" stroke="#4a5064" stroke-width="1.5"/>
+        <line x1="34" y1="62" x2="34" y2="94" stroke="#7dffa8" stroke-width="1" opacity=".45"/>
+        <path d="M28 100 L22 116 M34 102 L34 118 M40 100 L46 116" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+      <g class="part c-arm-r">
+        <rect x="178" y="56" width="16" height="44" rx="6" fill="url(#gMetal)" stroke="#4a5064" stroke-width="1.5"/>
+        <line x1="186" y1="62" x2="186" y2="94" stroke="#7dffa8" stroke-width="1" opacity=".45"/>
+        <path d="M180 100 L174 116 M186 102 L186 118 M192 100 L198 116" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+
+      <!-- 赛博身体（底层，装甲覆盖后可见） -->
+      <path class="part c-body" d="M58 32 L162 32 L178 48 L178 146 L162 162 L58 162 L42 146 L42 48 Z" fill="url(#gMetal)" stroke="#7dffa8" stroke-width="2"/>
+
+      <!-- 四片装甲（从体内翻出，覆盖圆角） -->
+      <path class="part c-armor armor-a" d="M42 32 L110 26 L110 60 L42 60 Z" fill="#2a3042" stroke="#7dffa8" stroke-width="1.5"/>
+      <path class="part c-armor armor-b" d="M160 60 L196 60 L188 110 L152 110 Z" fill="#2a3042" stroke="#7dffa8" stroke-width="1.5"/>
+      <path class="part c-armor armor-c" d="M42 150 L110 150 L110 188 L42 170 Z" fill="#2a3042" stroke="#7dffa8" stroke-width="1.5"/>
+      <path class="part c-armor armor-d" d="M110 60 L166 60 L158 110 L110 110 Z" fill="#2a3042" stroke="#7dffa8" stroke-width="1.5" opacity="0"/>
+
+      <!-- 线缝（变身时亮起） -->
+      <g class="part c-seam">
+        <path d="M42 48 L178 48" stroke="#7dffa8" stroke-width="1.2"/>
+        <path d="M42 146 L178 146" stroke="#7dffa8" stroke-width="1.2"/>
+        <path d="M58 32 L58 162" stroke="#7dffa8" stroke-width="1"/>
+        <path d="M162 32 L162 162" stroke="#7dffa8" stroke-width="1"/>
+        <g stroke="#4a5064" stroke-width="1.5"><line x1="150" y1="56" x2="162" y2="56"/><line x1="150" y1="64" x2="162" y2="64"/><line x1="150" y1="72" x2="162" y2="72"/></g>
+      </g>
+
+      <!-- 赛博眼（锐利菱形，发光） -->
+      <g class="part c-eye" filter="url(#fGlow)">
+        <path d="M62 74 L84 70 L84 84 L62 80 Z" fill="#7dffa8"/>
+        <path d="M136 70 L158 74 L158 80 L136 84 Z" fill="#7dffa8"/>
+      </g>
+      <path class="part c-eye" d="M62 77 L84 73 L84 81 L62 77 Z" fill="#eafff3" opacity=".85"/>
+      <path class="part c-eye" d="M136 73 L158 77 L158 81 L136 81 Z" fill="#eafff3" opacity=".85"/>
+
+      <!-- 冷酷线嘴 -->
+      <path class="part c-eye" d="M94 128 L110 136 L126 128" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+      <!-- 胸口能量核心 -->
+      <g class="part c-core" filter="url(#fGlow)">
+        <circle cx="110" cy="104" r="16" fill="url(#gCore)" opacity=".35"/>
+        <circle cx="110" cy="104" r="9" fill="url(#gCore)" opacity=".8"/>
+        <circle cx="110" cy="104" r="4" fill="#eafff3"/>
+      </g>
+      <ellipse class="part c-core" cx="110" cy="104" rx="24" ry="7" fill="none" stroke="#7dffa8" stroke-width="1" opacity=".45" transform="rotate(-14 110 104)"/>
+    </g>
+  </svg>
+</div>
+
+<div class="controls">
+  <button class="btn btn-primary" id="btnMorph" onclick="morph()">⚡ 变身！</button>
+  <button class="btn btn-ghost" id="btnRevert" onclick="revert()" disabled>变回去</button>
+</div>
+<div class="status" id="status">形态：Q版 · 日常</div>
+<div class="timeline">变身序列：眼闪(0.1s) → 震动(0.35s) → 白闪(0.55s) → 四肢展开(0.6s) → 装甲翻出(0.9s) → 线缝亮起(1.2s) → 核心点亮(1.4s) → 光爆定格(1.9s)</div>
+
+<script>
+const stage = document.getElementById('stage');
+const status = document.getElementById('status');
+const btnMorph = document.getElementById('btnMorph');
+const btnRevert = document.getElementById('btnRevert');
+let isCyborg = false;
+let busy = false;
+
+function morph() {
+  if (busy) return;
+  busy = true; btnMorph.disabled = true; btnRevert.disabled = true;
+  status.textContent = '变身启动…';
+  stage.classList.add('transforming');
+  setTimeout(() => {
+    stage.classList.remove('transforming');
+    stage.classList.add('cyborg');
+    status.textContent = '形态：赛博义体 · 危险模式';
+    btnRevert.disabled = false;
+    busy = false;
+  }, 2700);
+}
+
+function revert() {
+  if (busy) return;
+  busy = true; btnMorph.disabled = true; btnRevert.disabled = true;
+  status.textContent = '解除变身…';
+  stage.classList.remove('cyborg');
+  // 变回加一个小闪光
+  stage.classList.add('transforming');
+  setTimeout(() => {
+    stage.classList.remove('transforming');
+    status.textContent = '形态：Q版 · 日常（刚才那个不是我）';
+    btnMorph.disabled = false;
+    busy = false;
+  }, 900);
+}
+</script>
+
+</body>
+</html>

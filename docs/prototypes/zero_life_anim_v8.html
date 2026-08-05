@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>零 · 生命动画 v8（会走路会打哈欠）</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei",sans-serif; background:#0e0e18; color:#eaeaea; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:30px; }
+  h1 { font-size:22px; margin-bottom:4px; }
+  .sub { color:#888; font-size:13px; margin-bottom:22px; }
+
+  .desktop {
+    width: 720px; height: 260px;
+    background: radial-gradient(circle at 50% 0%, #1a1a30, #0a0a14);
+    border: 1px solid rgba(255,255,255,.08); border-radius: 16px;
+    position: relative; overflow: hidden; margin-bottom: 20px;
+  }
+  .desktop .floor { position:absolute; bottom:0; left:0; right:0; height:36px; background:linear-gradient(#141428, #0a0a16); border-top:1px solid rgba(255,255,255,.06); }
+
+  /* 零（整体容器，JS 控制左右移动） */
+  #zero {
+    position: absolute; bottom: 30px; left: 40px;
+    width: 130px; height: 130px; cursor: pointer; z-index: 3;
+    transition: transform .4s cubic-bezier(.3,1.4,.4,1);
+  }
+  #zero.flip { transform: scaleX(-1); }
+
+  /* ════ SVG 部件动画 ════ */
+  .zero-svg { display:block; }
+
+  /* 身体部件 */
+  .b-body, .b-leg, .b-arm, .b-eye, .b-mouth { transition: transform .3s ease; }
+
+  /* ── 空闲：呼吸 + 眨眼 ── */
+  .state-idle .b-body { animation: breathe 3.2s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  .state-idle .b-eye { animation: blink 4.5s infinite; transform-origin: center; }
+  @keyframes blink { 0%,90%,96%,100% { transform: scaleY(1); } 93% { transform: scaleY(.08); } }
+
+  /* ── 走路：腿交替 + 身体起伏 ── */
+  .state-walk .b-leg-l { animation: step-l .55s ease-in-out infinite; transform-origin: 76px 128px; }
+  .state-walk .b-leg-r { animation: step-r .55s ease-in-out infinite; transform-origin: 112px 128px; }
+  @keyframes step-l { 0% { transform: rotate(24deg); } 50% { transform: rotate(-18deg); } 100% { transform: rotate(24deg); } }
+  @keyframes step-r { 0% { transform: rotate(-18deg); } 50% { transform: rotate(24deg); } 100% { transform: rotate(-18deg); } }
+  .state-walk .b-arm-l { animation: arm-l .55s ease-in-out infinite; transform-origin: 40px 58px; }
+  .state-walk .b-arm-r { animation: arm-r .55s ease-in-out infinite; transform-origin: 148px 58px; }
+  @keyframes arm-l { 0% { transform: rotate(-14deg); } 50% { transform: rotate(12deg); } 100% { transform: rotate(-14deg); } }
+  @keyframes arm-r { 0% { transform: rotate(12deg); } 50% { transform: rotate(-14deg); } 100% { transform: rotate(12deg); } }
+  .state-walk .b-body { animation: walk-bob .55s ease-in-out infinite; }
+  @keyframes walk-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+  /* ── 打哈欠（临时状态） ── */
+  .state-yawn .b-mouth-open { opacity: 1; }
+  .state-yawn .b-mouth { opacity: 0; }
+  .state-yawn .b-eye { animation: squint .9s ease; transform-origin: center; }
+  @keyframes squint { 0%,100% { transform: scaleY(1); } 30% { transform: scaleY(.25); } }
+  .state-yawn .b-body { animation: yawn-stretch 1.2s ease; }
+  @keyframes yawn-stretch { 0%,100% { transform: scale(1); } 40% { transform: scale(1.06, .96) translateY(2px); } }
+  .b-mouth-open { opacity: 0; transition: opacity .2s; }
+
+  /* ── 睡觉：Zzz ── */
+  .state-sleep .b-eye { transform: scaleY(.08); transform-origin: center; }
+  .state-sleep .b-mouth { opacity: 0; }
+  .state-sleep .b-mouth-sleep { opacity: 1; }
+  .state-sleep .b-body { animation: sleep-breathe 2.6s ease-in-out infinite; }
+  @keyframes sleep-breathe { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.02, .97) translateY(1px); } }
+  .b-mouth-sleep { opacity: 0; }
+  .zzz { position:absolute; right:-6px; top:-14px; font-size:16px; color:#8ab4ff; opacity:0; font-weight:700; }
+  .state-sleep .zzz { animation: zzz-float 2.4s ease-in-out infinite; }
+  .zzz.z2 { animation-delay: .8s !important; right:-2px; top:-24px; font-size:12px; }
+  .zzz.z3 { animation-delay: 1.6s !important; right:-10px; top:-34px; font-size:9px; }
+  @keyframes zzz-float { 0% { opacity:0; transform: translate(0,6px); } 30% { opacity:.9; } 100% { opacity:0; transform: translate(6px,-10px); } }
+
+  /* ── 开心（点击） ── */
+  .state-happy .b-body { animation: happy-jump .7s ease; }
+  @keyframes happy-jump { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-16px) scale(1.05); } 60% { transform: translateY(0); } }
+  .state-happy .b-eye { animation: happy-blink .7s ease; transform-origin: center; }
+  @keyframes happy-blink { 0%,20%,100% { transform: scaleY(1); } 10% { transform: scaleY(.1); } }
+  .heart { position:absolute; right:-8px; top:-6px; font-size:18px; opacity:0; }
+  .state-happy .heart { animation: heart-pop 1s ease; }
+  @keyframes heart-pop { 0% { opacity:0; transform: scale(.4) translateY(4px); } 30% { opacity:1; transform: scale(1.2) translateY(0); } 70% { opacity:1; } 100% { opacity:0; transform: scale(1) translateY(-10px); } }
+
+  /* ── 左顾右盼 ── */
+  .state-look .b-eye { animation: look-around 2.2s ease-in-out infinite; }
+  @keyframes look-around { 0%,100% { transform: translateX(0); } 20% { transform: translateX(4px); } 40% { transform: translateX(-4px); } 60% { transform: translateX(3px); } 80% { transform: translateX(-2px); } }
+  .state-look .b-head { animation: head-turn 2.2s ease-in-out infinite; }
+  @keyframes head-turn { 0%,100% { transform: rotate(0); } 25% { transform: rotate(8deg); } 50% { transform: rotate(-8deg); } 75% { transform: rotate(5deg); } }
+
+  /* 状态栏 */
+  .controls { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:14px; }
+  .btn { padding:9px 20px; border-radius:10px; border:none; font-size:13px; font-weight:600; cursor:pointer; background:rgba(255,255,255,.1); color:#ddd; }
+  .btn:hover { background:rgba(255,255,255,.18); }
+  .btn.active { background:#7dffa8; color:#0e0e18; }
+  .status { font-size:13px; color:#888; min-height:20px; text-align:center; }
+  .hint { font-size:11px; color:#555; margin-top:8px; text-align:center; line-height:1.8; }
+</style>
+</head>
+<body>
+
+<h1>⬡ 零 · 生命动画 v8</h1>
+<div class="sub">呼吸 · 眨眼 · 走路 · 打哈欠 · 睡觉 · 开心 —— 让零活起来</div>
+
+<div class="controls">
+  <button class="btn active" data-state="idle">空闲</button>
+  <button class="btn" data-state="walk">走路</button>
+  <button class="btn" data-state="look">左顾右盼</button>
+  <button class="btn" data-state="sleep">睡觉</button>
+  <button class="btn" id="btnYawn">打哈欠</button>
+  <button class="btn" id="btnHappy">点击开心</button>
+  <button class="btn" id="btnWalkAround">桌面散步</button>
+</div>
+
+<div class="desktop" id="desktop">
+  <div class="floor"></div>
+  <!-- 零 -->
+  <div id="zero" class="state-idle">
+    <div class="heart">💚</div>
+    <span class="zzz z1">z</span><span class="zzz z2">z</span><span class="zzz z3">Z</span>
+    <svg class="zero-svg" width="190" height="190" viewBox="0 0 190 190">
+      <!-- 左臂 -->
+      <rect class="b-arm b-arm-l" x="38" y="52" width="15" height="46" rx="7.5" fill="#2a2a3e"/>
+      <!-- 右臂 -->
+      <rect class="b-arm b-arm-r" x="137" y="52" width="15" height="46" rx="7.5" fill="#2a2a3e"/>
+      <!-- 左腿 -->
+      <rect class="b-leg b-leg-l" x="68" y="122" width="17" height="34" rx="8" fill="#2a2a3e"/>
+      <!-- 右腿 -->
+      <rect class="b-leg b-leg-r" x="105" y="122" width="17" height="34" rx="8" fill="#2a2a3e"/>
+      <!-- 身体 -->
+      <g class="b-body">
+        <rect x="42" y="28" width="106" height="108" rx="34" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3.5"/>
+        <!-- 头 -->
+        <g class="b-head">
+          <!-- 眼睛 -->
+          <ellipse class="b-eye b-eye-l" cx="76" cy="74" rx="12" ry="11" fill="#eaeaea"/>
+          <ellipse class="b-eye b-eye-r" cx="114" cy="74" rx="12" ry="11" fill="#eaeaea"/>
+          <circle cx="79" cy="72" r="4.2" fill="#12121e"/>
+          <circle cx="117" cy="72" r="4.2" fill="#12121e"/>
+          <circle cx="82" cy="68" r="1.7" fill="#fff"/>
+          <circle cx="120" cy="68" r="1.7" fill="#fff"/>
+          <!-- 日常嘴 -->
+          <path class="b-mouth" d="M86 102 Q95 96 104 102" stroke="#eaeaea" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <!-- 打哈欠大嘴 -->
+          <ellipse class="b-mouth-open" cx="95" cy="104" rx="14" ry="10" fill="#12121e" stroke="#eaeaea" stroke-width="2.5"/>
+          <!-- 睡觉嘴 -->
+          <path class="b-mouth-sleep" d="M88 106 Q95 101 102 106" stroke="#eaeaea" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<div class="status" id="status">状态：空闲（自动呼吸+眨眼，偶尔打哈欠）</div>
+<div class="hint">提示：悬停零会抬头看你 · 点击开心跳 · 双击睡觉 · "桌面散步"看它走来走去 · 打哈欠是自动触发的</div>
+
+<script>
+const zero = document.getElementById('zero');
+const statusEl = document.getElementById('status');
+let currentState = 'idle';
+let walkingTimer = null;
+let faceDir = 1; // 1=右 -1=左
+
+const STATE_NAMES = {
+  idle: '空闲（呼吸+眨眼）', walk: '原地走路', look: '左顾右盼',
+  sleep: '睡觉（Zzz）', happy: '开心', yawn: '打哈欠'
+};
+
+function setState(s) {
+  zero.className = '';
+  // 强制 reflow 让动画类重放
+  void zero.offsetWidth;
+  zero.classList.add('state-' + s);
+  currentState = s;
+  statusEl.textContent = '状态：' + STATE_NAMES[s];
+  // 高亮按钮
+  document.querySelectorAll('.btn[data-state]').forEach(b => b.classList.toggle('active', b.dataset.state === s));
+}
+
+// 按钮
+document.querySelectorAll('.btn[data-state]').forEach(b => {
+  b.addEventListener('click', () => {
+    stopWalk();
+    setState(b.dataset.state);
+  });
+});
+document.getElementById('btnYawn').addEventListener('click', () => {
+  stopWalk();
+  setState('yawn');
+  setTimeout(() => setState('idle'), 1300);
+});
+document.getElementById('btnHappy').addEventListener('click', () => {
+  stopWalk();
+  setState('happy');
+  setTimeout(() => setState('idle'), 900);
+});
+
+// 自动打哈欠（空闲时偶尔）
+setInterval(() => {
+  if (currentState === 'idle' && Math.random() < 0.35) {
+    setState('yawn');
+    setTimeout(() => setState('idle'), 1300);
+  }
+}, 9000);
+
+// 悬停：抬头看（眼睛睁大 + 歪头）
+zero.addEventListener('mouseenter', () => {
+  if (currentState === 'idle' || currentState === 'look') {
+    zero.style.transform = (faceDir === -1 ? 'scaleX(-1) ' : '') + 'translateY(-4px)';
+  }
+});
+zero.addEventListener('mouseleave', () => {
+  zero.style.transform = faceDir === -1 ? 'scaleX(-1)' : '';
+});
+
+// 点击：开心
+zero.addEventListener('click', (e) => {
+  if (e.detail >= 2) { // 双击：睡觉
+    stopWalk();
+    setState('sleep');
+    setTimeout(() => setState('idle'), 4000);
+    return;
+  }
+  if (currentState !== 'happy') {
+    stopWalk();
+    setState('happy');
+    setTimeout(() => setState('idle'), 900);
+  }
+});
+
+// 桌面散步：走来回
+function startWalk() {
+  stopWalk();
+  setState('walk');
+  const desktop = document.getElementById('desktop');
+  const maxX = desktop.clientWidth - zero.offsetWidth - 20;
+  const speed = 95; // px/s
+  let pos = parseInt(zero.style.left) || 40;
+
+  function step() {
+    const dest = faceDir === 1 ? maxX : 20;
+    const dist = Math.abs(dest - pos);
+    const dur = Math.max(dist / speed * 1000, 300);
+    zero.style.transition = `left ${dur}ms linear, transform .4s`;
+    zero.style.left = dest + 'px';
+    const arrived = () => {
+      pos = dest;
+      // 停下喘口气（空闲 1.2s），然后转身继续
+      setTimeout(() => {
+        if (currentState !== 'walk') return;
+        setState('idle');
+        setTimeout(() => {
+          if (walkingTimer === null) return;
+          faceDir = -faceDir;
+          zero.style.transform = faceDir === -1 ? 'scaleX(-1)' : '';
+          setState('walk');
+          pos = dest;
+          step();
+        }, 1400);
+      }, 350);
+    };
+    setTimeout(arrived, dur);
+  }
+  walkingTimer = setTimeout(step, 50);
+}
+
+function stopWalk() {
+  if (walkingTimer) { clearTimeout(walkingTimer); walkingTimer = null; }
+  zero.style.transition = '';
+}
+
+document.getElementById('btnWalkAround').addEventListener('click', () => {
+  zero.style.left = '40px';
+  faceDir = 1;
+  zero.style.transform = '';
+  startWalk();
+});
+</script>
+
+</body>
+</html>

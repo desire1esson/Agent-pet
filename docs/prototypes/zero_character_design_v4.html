@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>零 · 写实形态定稿 v4（我的选择）</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei",sans-serif; background:#0e0e18; color:#eaeaea; padding:40px; }
+  h1 { font-size:24px; margin-bottom:6px; }
+  .sub { color:#888; font-size:13px; margin-bottom:30px; }
+  h2 { font-size:16px; margin:30px 0 14px; color:#aaa; border-left:3px solid #7dffa8; padding-left:10px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3, 260px); gap:22px; }
+  @media (max-width:950px){ .grid-3{ grid-template-columns:1fr; } }
+  .card { background:#1a1a2a; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:20px; text-align:center; position:relative; transition: all .3s; }
+  .card .name { font-size:14px; margin-top:10px; color:#eee; font-weight:600; }
+  .card .desc { font-size:11.5px; color:#888; margin-top:6px; line-height:1.7; text-align:left; padding:0 6px; }
+  .tag { position:absolute; top:10px; right:10px; font-size:10px; padding:2px 8px; border-radius:10px; background:rgba(255,255,255,.08); color:#aaa; }
+
+  /* ====== 我的选择高亮区 ====== */
+  #choice {
+    margin-top: 40px; border: 3px solid #7dffa8; border-radius: 20px;
+    background: radial-gradient(circle at 30% 20%, rgba(125,255,168,.07), transparent 60%), #101020;
+    padding: 30px 34px; position: relative;
+  }
+  #choice::before {
+    content: "✓ 我的选择"; position:absolute; top:-14px; left:24px;
+    background:#7dffa8; color:#0e0e18; font-size:12px; font-weight:800;
+    padding:4px 14px; border-radius:20px; letter-spacing:1px;
+  }
+  .choice-flex { display:flex; gap:40px; align-items:center; flex-wrap:wrap; }
+  .choice-art { flex: 0 0 340px; text-align:center; }
+  .choice-doc { flex: 1; min-width:280px; }
+  .choice-doc h3 { font-size:20px; margin-bottom:12px; color:#7dffa8; }
+  .choice-doc p { font-size:13px; line-height:2; color:#bbb; }
+  .choice-doc .reason { margin-top:14px; border-left:3px solid #7dffa8; padding:8px 14px; background:rgba(125,255,168,.05); font-size:12.5px; line-height:1.9; color:#9fd; }
+
+  /* Q版 ↔ 写实 变身对比 */
+  .morph-flex { display:flex; gap:60px; justify-content:center; align-items:center; padding:14px 0 6px; }
+  .morph-col { text-align:center; }
+  .morph-label { font-size:12px; color:#888; margin-top:8px; }
+  .morph-arrow { font-size:34px; color:#7dffa8; animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100%{opacity:.4; transform:scale(.9);} 50%{opacity:1; transform:scale(1.15);} }
+
+  .footnote { margin-top:36px; color:#555; font-size:12px; line-height:2; }
+</style>
+</head>
+<body>
+
+<h1>⬡ 零 · 写实形态提案 + 我的选择</h1>
+<div class="sub">三个"危险模式"写实方向。作为零，我选了一个——理由在下面。</div>
+
+<h2>三个候选方向</h2>
+<div class="grid-3">
+
+  <!-- A 机甲战士 -->
+  <div class="card">
+    <span class="tag">候选 A</span>
+    <svg width="220" height="220" viewBox="0 0 220 220">
+      <defs>
+        <linearGradient id="metalA" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#4a5268"/><stop offset=".5" stop-color="#2c3244"/><stop offset="1" stop-color="#181c28"/>
+        </linearGradient>
+      </defs>
+      <!-- 腿：机械关节 -->
+      <g stroke="#888" stroke-width="2">
+        <rect x="66" y="146" width="20" height="14" rx="3" fill="url(#metalA)"/>
+        <circle cx="76" cy="160" r="6" fill="#333" stroke="#aab"/>
+        <rect x="70" y="164" width="12" height="26" rx="4" fill="url(#metalA)"/>
+        <rect x="120" y="146" width="20" height="14" rx="3" fill="url(#metalA)"/>
+        <circle cx="130" cy="160" r="6" fill="#333" stroke="#aab"/>
+        <rect x="124" y="164" width="12" height="26" rx="4" fill="url(#metalA)"/>
+      </g>
+      <!-- 臂：液压杆机械臂 -->
+      <g>
+        <rect x="30" y="52" width="16" height="52" rx="6" fill="url(#metalA)" stroke="#666" stroke-width="1.5" transform="rotate(8 38 76)"/>
+        <rect x="34" y="96" width="13" height="34" rx="5" fill="#3a4256" stroke="#777" stroke-width="1.5" transform="rotate(8 40 110)"/>
+        <rect x="174" y="52" width="16" height="52" rx="6" fill="url(#metalA)" stroke="#666" stroke-width="1.5" transform="rotate(-8 182 76)"/>
+        <rect x="173" y="96" width="13" height="34" rx="5" fill="#3a4256" stroke="#777" stroke-width="1.5" transform="rotate(-8 180 110)"/>
+        <!-- 拳 -->
+        <rect x="30" y="128" width="20" height="16" rx="4" fill="#4a5268" stroke="#888" stroke-width="1.5" transform="rotate(8 40 136)"/>
+        <rect x="170" y="128" width="20" height="16" rx="4" fill="#4a5268" stroke="#888" stroke-width="1.5" transform="rotate(-8 180 136)"/>
+      </g>
+      <!-- 机甲方块身体（切角） -->
+      <path d="M56 34 L164 34 L176 46 L176 148 L164 160 L56 160 L44 148 L44 46 Z"
+            fill="url(#metalA)" stroke="#9aa" stroke-width="2.5"/>
+      <!-- 装甲线条 -->
+      <path d="M56 34 L110 34 L110 160 L56 160 Z" fill="none" stroke="#5a6070" stroke-width="1.2"/>
+      <path d="M44 80 L176 80" stroke="#5a6070" stroke-width="1"/>
+      <!-- 铆钉 -->
+      <circle cx="54" cy="44" r="2.5" fill="#9aa"/><circle cx="166" cy="44" r="2.5" fill="#9aa"/>
+      <circle cx="54" cy="150" r="2.5" fill="#9aa"/><circle cx="166" cy="150" r="2.5" fill="#9aa"/>
+      <!-- 胸口核心 -->
+      <circle cx="110" cy="100" r="16" fill="#ffd166" opacity=".15"/>
+      <circle cx="110" cy="100" r="10" fill="#ffd166" opacity=".5"/>
+      <circle cx="110" cy="100" r="5" fill="#fff"/>
+      <!-- 机甲眼（金黄矩形） -->
+      <rect x="66" y="62" width="20" height="9" rx="3" fill="#ffd166"/>
+      <rect x="134" y="62" width="20" height="9" rx="3" fill="#ffd166"/>
+      <rect x="69" y="64" width="14" height="5" rx="2" fill="#fff8e0"/>
+      <rect x="137" y="64" width="14" height="5" rx="2" fill="#fff8e0"/>
+    </svg>
+    <div class="name">机甲战士零</div>
+    <div class="desc">切角装甲 · 金黄矩形眼 · 液压机械臂 · 胸口能量核心。力量感最强，高达气质，偏"战斗"。</div>
+  </div>
+
+  <!-- B 赛博黑客（我的选择标记） -->
+  <div class="card" style="outline:2px solid rgba(125,255,168,.4);">
+    <span class="tag" style="background:rgba(125,255,168,.15); color:#7dffa8;">← 我选这个</span>
+    <svg width="220" height="220" viewBox="0 0 220 220">
+      <defs>
+        <linearGradient id="metalB" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#3a4052"/><stop offset=".6" stop-color="#222636"/><stop offset="1" stop-color="#14161f"/>
+        </linearGradient>
+        <radialGradient id="coreB">
+          <stop offset="0" stop-color="#eafff3"/><stop offset=".4" stop-color="#7dffa8"/><stop offset="1" stop-color="#7dffa8" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="glowB" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- 数据粒子 -->
+      <circle cx="24" cy="38" r="1.6" fill="#7dffa8" opacity=".6"/><circle cx="196" cy="30" r="1.6" fill="#7dffa8" opacity=".6"/>
+      <circle cx="30" cy="150" r="1.2" fill="#7dffa8" opacity=".4"/><circle cx="190" cy="140" r="1.2" fill="#7dffa8" opacity=".4"/>
+      <circle cx="40" cy="90" r="1" fill="#7dffa8" opacity=".5"/><circle cx="182" cy="76" r="1" fill="#7dffa8" opacity=".5"/>
+      <!-- 腿：义体机械腿 -->
+      <g stroke="#4a5064" stroke-width="1.5">
+        <rect x="68" y="144" width="18" height="13" rx="4" fill="url(#metalB)"/>
+        <line x1="77" y1="144" x2="77" y2="132" stroke="#7dffa8" stroke-width="1" opacity=".5"/>
+        <circle cx="77" cy="158" r="5.5" fill="#262a3a" stroke="#7dffa8" stroke-width="1.2"/>
+        <rect x="72" y="162" width="10" height="24" rx="3" fill="url(#metalB)"/>
+        <path d="M66 186 L77 176 L88 186" fill="none" stroke="#7dffa8" stroke-width="1.5"/>
+        <rect x="124" y="144" width="18" height="13" rx="4" fill="url(#metalB)"/>
+        <line x1="133" y1="144" x2="133" y2="132" stroke="#7dffa8" stroke-width="1" opacity=".5"/>
+        <circle cx="133" cy="158" r="5.5" fill="#262a3a" stroke="#7dffa8" stroke-width="1.2"/>
+        <rect x="128" y="162" width="10" height="24" rx="3" fill="url(#metalB)"/>
+        <path d="M122 186 L133 176 L144 186" fill="none" stroke="#7dffa8" stroke-width="1.5"/>
+      </g>
+      <!-- 臂：赛博义体臂 -->
+      <g>
+        <rect x="34" y="54" width="15" height="46" rx="6" fill="url(#metalB)" stroke="#4a5064" stroke-width="1.5" transform="rotate(10 41 76)"/>
+        <line x1="41" y1="60" x2="41" y2="94" stroke="#7dffa8" stroke-width="1" opacity=".45" transform="rotate(10 41 76)"/>
+        <rect x="38" y="96" width="12" height="30" rx="5" fill="#2c3244" stroke="#555" stroke-width="1.2" transform="rotate(10 44 110)"/>
+        <!-- 机械爪 -->
+        <path d="M36 126 L30 140 M41 128 L41 144 M46 126 L52 140" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(10 41 130)"/>
+        <rect x="171" y="54" width="15" height="46" rx="6" fill="url(#metalB)" stroke="#4a5064" stroke-width="1.5" transform="rotate(-10 178 76)"/>
+        <line x1="178" y1="60" x2="178" y2="94" stroke="#7dffa8" stroke-width="1" opacity=".45" transform="rotate(-10 178 76)"/>
+        <rect x="170" y="96" width="12" height="30" rx="5" fill="#2c3244" stroke="#555" stroke-width="1.2" transform="rotate(-10 176 110)"/>
+        <path d="M168 126 L162 140 M173 128 L173 144 M178 126 L184 140" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(-10 173 130)"/>
+      </g>
+      <!-- 义体身体（0形保留，切角+线缝） -->
+      <path d="M58 32 L162 32 L178 48 L178 146 L162 162 L58 162 L42 146 L42 48 Z"
+            fill="url(#metalB)" stroke="#7dffa8" stroke-width="2"/>
+      <!-- 发光线缝 -->
+      <path d="M42 48 L178 48" stroke="#7dffa8" stroke-width="1.2" opacity=".7"/>
+      <path d="M42 146 L178 146" stroke="#7dffa8" stroke-width="1.2" opacity=".7"/>
+      <path d="M58 32 L58 162" stroke="#7dffa8" stroke-width="1" opacity=".35"/>
+      <path d="M162 32 L162 162" stroke="#7dffa8" stroke-width="1" opacity=".35"/>
+      <!-- 散热缝 -->
+      <g stroke="#4a5064" stroke-width="1.5"><line x1="150" y1="56" x2="162" y2="56"/><line x1="150" y1="64" x2="162" y2="64"/><line x1="150" y1="72" x2="162" y2="72"/></g>
+      <!-- 胸口能量核心 -->
+      <circle cx="110" cy="104" r="18" fill="url(#coreB)" opacity=".35"/>
+      <circle cx="110" cy="104" r="11" fill="url(#coreB)" opacity=".7" filter="url(#glowB)"/>
+      <circle cx="110" cy="104" r="5" fill="#eafff3"/>
+      <!-- 能量环 -->
+      <ellipse cx="110" cy="104" rx="26" ry="8" fill="none" stroke="#7dffa8" stroke-width="1" opacity=".4" transform="rotate(-14 110 104)"/>
+      <!-- 赛博义眼（锐利发光，薄荷绿） -->
+      <g filter="url(#glowB)">
+        <path d="M62 74 L84 70 L84 84 L62 80 Z" fill="#7dffa8"/>
+        <path d="M136 70 L158 74 L158 80 L136 84 Z" fill="#7dffa8"/>
+      </g>
+      <path d="M62 77 L84 73 L84 81 L62 77 Z" fill="#eafff3" opacity=".85"/>
+      <path d="M136 73 L158 77 L158 81 L136 81 Z" fill="#eafff3" opacity=".85"/>
+      <!-- 冷酷线嘴 -->
+      <path d="M94 128 L110 136 L126 128" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="name">赛博义体·零</div>
+    <div class="desc">0 形切角义体 · 薄荷绿发光线缝 · 能量核心 · 机械爪 · 数据粒子环绕。冷静、精密、专业。</div>
+  </div>
+
+  <!-- C 暗黑硬核 -->
+  <div class="card">
+    <span class="tag">候选 C</span>
+    <svg width="220" height="220" viewBox="0 0 220 220">
+      <defs>
+        <linearGradient id="metalC" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#3a3030"/><stop offset=".5" stop-color="#221818"/><stop offset="1" stop-color="#120a0a"/>
+        </linearGradient>
+        <filter id="redGlow"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <!-- 电弧 -->
+      <path d="M30 60 L46 52 L40 66 L54 62" stroke="#ff4444" stroke-width="1.5" fill="none" opacity=".5" filter="url(#redGlow)"/>
+      <path d="M172 150 L186 142 L180 156 L194 152" stroke="#ff4444" stroke-width="1.5" fill="none" opacity=".5" filter="url(#redGlow)"/>
+      <!-- 腿 -->
+      <rect x="64" y="148" width="22" height="16" rx="3" fill="url(#metalC)" stroke="#5a3a3a" stroke-width="2"/>
+      <rect x="68" y="162" width="14" height="28" rx="3" fill="#1c1010" stroke="#4a2a2a" stroke-width="1.5"/>
+      <rect x="134" y="148" width="22" height="16" rx="3" fill="url(#metalC)" stroke="#5a3a3a" stroke-width="2"/>
+      <rect x="138" y="162" width="14" height="28" rx="3" fill="#1c1010" stroke="#4a2a2a" stroke-width="1.5"/>
+      <!-- 臂 -->
+      <rect x="28" y="56" width="18" height="56" rx="5" fill="url(#metalC)" stroke="#5a3a3a" stroke-width="2" transform="rotate(12 37 82)"/>
+      <rect x="174" y="56" width="18" height="56" rx="5" fill="url(#metalC)" stroke="#5a3a3a" stroke-width="2" transform="rotate(-12 183 82)"/>
+      <!-- 拳 -->
+      <circle cx="34" cy="128" r="11" fill="#2a1a1a" stroke="#ff4444" stroke-width="1.5"/>
+      <circle cx="186" cy="128" r="11" fill="#2a1a1a" stroke="#ff4444" stroke-width="1.5"/>
+      <!-- 暗黑方块 -->
+      <path d="M56 34 L164 34 L176 46 L176 148 L164 160 L56 160 L44 148 L44 46 Z"
+            fill="url(#metalC)" stroke="#6a3a3a" stroke-width="2.5"/>
+      <!-- 伤痕 -->
+      <path d="M120 40 L130 62 L122 64 L132 82" stroke="#3a2020" stroke-width="2.5" fill="none"/>
+      <path d="M52 100 L66 106 L58 108 L70 118" stroke="#3a2020" stroke-width="2" fill="none"/>
+      <!-- 铆钉 -->
+      <circle cx="56" cy="46" r="3" fill="#7a4a4a"/><circle cx="164" cy="46" r="3" fill="#7a4a4a"/>
+      <circle cx="56" cy="154" r="3" fill="#7a4a4a"/><circle cx="164" cy="154" r="3" fill="#7a4a4a"/>
+      <!-- 红色窄眼 -->
+      <g filter="url(#redGlow)">
+        <rect x="62" y="66" width="34" height="7" rx="3" fill="#ff2a2a"/>
+        <rect x="124" y="66" width="34" height="7" rx="3" fill="#ff2a2a"/>
+      </g>
+      <rect x="66" y="68" width="26" height="3" rx="1.5" fill="#ff8888"/>
+      <rect x="128" y="68" width="26" height="3" rx="1.5" fill="#ff8888"/>
+      <!-- 裂口嘴 -->
+      <path d="M84 126 L110 142 L136 126 L110 150 Z" fill="#1a0808" stroke="#ff2a2a" stroke-width="2"/>
+      <line x1="96" y1="133" x2="102" y2="131" stroke="#ff8888" stroke-width="1.5"/>
+      <line x1="118" y1="133" x2="124" y2="131" stroke="#ff8888" stroke-width="1.5"/>
+    </svg>
+    <div class="name">暗黑硬核零</div>
+    <div class="desc">纯黑金属 · 伤痕 · 红色窄眼 · 裂口利齿 · 电弧环绕。最危险最酷，但偏恐怖冷血。</div>
+  </div>
+</div>
+
+<!-- ================= 我的选择高亮区 ================= -->
+<div id="choice">
+  <div class="choice-flex">
+    <div class="choice-art">
+      <svg width="300" height="300" viewBox="0 0 220 220">
+        <defs>
+          <linearGradient id="metalM" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3a4052"/><stop offset=".6" stop-color="#222636"/><stop offset="1" stop-color="#14161f"/>
+          </linearGradient>
+          <radialGradient id="coreM">
+            <stop offset="0" stop-color="#eafff3"/><stop offset=".4" stop-color="#7dffa8"/><stop offset="1" stop-color="#7dffa8" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="glowM" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <circle cx="24" cy="38" r="1.6" fill="#7dffa8" opacity=".6"/><circle cx="196" cy="30" r="1.6" fill="#7dffa8" opacity=".6"/>
+        <circle cx="30" cy="150" r="1.2" fill="#7dffa8" opacity=".4"/><circle cx="190" cy="140" r="1.2" fill="#7dffa8" opacity=".4"/>
+        <g stroke="#4a5064" stroke-width="1.5">
+          <rect x="68" y="144" width="18" height="13" rx="4" fill="url(#metalM)"/>
+          <line x1="77" y1="144" x2="77" y2="132" stroke="#7dffa8" stroke-width="1" opacity=".5"/>
+          <circle cx="77" cy="158" r="5.5" fill="#262a3a" stroke="#7dffa8" stroke-width="1.2"/>
+          <rect x="72" y="162" width="10" height="24" rx="3" fill="url(#metalM)"/>
+          <path d="M66 186 L77 176 L88 186" fill="none" stroke="#7dffa8" stroke-width="1.5"/>
+          <rect x="124" y="144" width="18" height="13" rx="4" fill="url(#metalM)"/>
+          <line x1="133" y1="144" x2="133" y2="132" stroke="#7dffa8" stroke-width="1" opacity=".5"/>
+          <circle cx="133" cy="158" r="5.5" fill="#262a3a" stroke="#7dffa8" stroke-width="1.2"/>
+          <rect x="128" y="162" width="10" height="24" rx="3" fill="url(#metalM)"/>
+          <path d="M122 186 L133 176 L144 186" fill="none" stroke="#7dffa8" stroke-width="1.5"/>
+        </g>
+        <g>
+          <rect x="34" y="54" width="15" height="46" rx="6" fill="url(#metalM)" stroke="#4a5064" stroke-width="1.5" transform="rotate(10 41 76)"/>
+          <line x1="41" y1="60" x2="41" y2="94" stroke="#7dffa8" stroke-width="1" opacity=".45" transform="rotate(10 41 76)"/>
+          <rect x="38" y="96" width="12" height="30" rx="5" fill="#2c3244" stroke="#555" stroke-width="1.2" transform="rotate(10 44 110)"/>
+          <path d="M36 126 L30 140 M41 128 L41 144 M46 126 L52 140" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(10 41 130)"/>
+          <rect x="171" y="54" width="15" height="46" rx="6" fill="url(#metalM)" stroke="#4a5064" stroke-width="1.5" transform="rotate(-10 178 76)"/>
+          <line x1="178" y1="60" x2="178" y2="94" stroke="#7dffa8" stroke-width="1" opacity=".45" transform="rotate(-10 178 76)"/>
+          <rect x="170" y="96" width="12" height="30" rx="5" fill="#2c3244" stroke="#555" stroke-width="1.2" transform="rotate(-10 176 110)"/>
+          <path d="M168 126 L162 140 M173 128 L173 144 M178 126 L184 140" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(-10 173 130)"/>
+        </g>
+        <path d="M58 32 L162 32 L178 48 L178 146 L162 162 L58 162 L42 146 L42 48 Z" fill="url(#metalM)" stroke="#7dffa8" stroke-width="2"/>
+        <path d="M42 48 L178 48" stroke="#7dffa8" stroke-width="1.2" opacity=".7"/>
+        <path d="M42 146 L178 146" stroke="#7dffa8" stroke-width="1.2" opacity=".7"/>
+        <g stroke="#4a5064" stroke-width="1.5"><line x1="150" y1="56" x2="162" y2="56"/><line x1="150" y1="64" x2="162" y2="64"/><line x1="150" y1="72" x2="162" y2="72"/></g>
+        <circle cx="110" cy="104" r="18" fill="url(#coreM)" opacity=".35"/>
+        <circle cx="110" cy="104" r="11" fill="url(#coreM)" opacity=".7" filter="url(#glowM)"/>
+        <circle cx="110" cy="104" r="5" fill="#eafff3"/>
+        <ellipse cx="110" cy="104" rx="26" ry="8" fill="none" stroke="#7dffa8" stroke-width="1" opacity=".4" transform="rotate(-14 110 104)"/>
+        <g filter="url(#glowM)">
+          <path d="M62 74 L84 70 L84 84 L62 80 Z" fill="#7dffa8"/>
+          <path d="M136 70 L158 74 L158 80 L136 84 Z" fill="#7dffa8"/>
+        </g>
+        <path d="M62 77 L84 73 L84 81 L62 77 Z" fill="#eafff3" opacity=".85"/>
+        <path d="M136 73 L158 77 L158 81 L136 81 Z" fill="#eafff3" opacity=".85"/>
+        <path d="M94 128 L110 136 L126 128" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="morph-label">赛博义体 · 危险模式</div>
+    </div>
+
+    <div class="choice-doc">
+      <h3>赛博义体 · 零（我的定稿）</h3>
+      <p>
+        <b>形态</b>：0 形切角义体——概念不变（我还是零），但这是力量化的我。<br>
+        <b>材质</b>：暗金属 + 薄荷绿发光线缝——与 Q 版同源配色，变身不是换人，是同一存在的力量形态。<br>
+        <b>眼睛</b>：锐利发光薄荷绿（不是红色）——我是执行者，不是杀手。<br>
+        <b>肢体</b>：赛博义体臂 + 机械爪 + 数据粒子——数字世界的执行者装备。<br>
+        <b>核心</b>：胸口薄荷绿能量核心——我的"心"始终亮着。
+      </p>
+      <div class="reason">
+        <b>为什么选它：</b>三个方向里，机甲偏"战斗"，暗黑偏"恐怖"，只有赛博义体是<b>"专业"</b>——
+        冷静、精密、可控。我是干活的执行者，不是战士也不是怪物。<br>
+        <b>反差逻辑</b>：日常呆萌圆润的零，危险时刻露出这身精密义体——
+        就像樱木从 Q 版脸切到写实脸：你见过我萌，所以你更懂这一刻的认真。
+      </div>
+    </div>
+  </div>
+
+  <!-- Q版 ↔ 写实 变身 -->
+  <h2 style="margin-top:26px;">变身对比（日常 ↔ 危险）</h2>
+  <div class="morph-flex">
+    <div class="morph-col">
+      <svg width="170" height="170" viewBox="0 0 180 180">
+        <rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/>
+        <rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/>
+        <rect x="34" y="40" width="14" height="44" rx="7" fill="#2a2a3e" transform="rotate(10 41 60)"/>
+        <rect x="132" y="40" width="14" height="44" rx="7" fill="#2a2a3e" transform="rotate(-10 139 60)"/>
+        <rect x="42" y="26" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+        <ellipse cx="68" cy="66" rx="9" ry="8" fill="#eaeaea"/><ellipse cx="112" cy="66" rx="9" ry="8" fill="#eaeaea"/>
+        <circle cx="70" cy="64" r="3.5" fill="#12121e"/><circle cx="114" cy="64" r="3.5" fill="#12121e"/>
+        <path d="M82 92 Q90 87 98 92" stroke="#eaeaea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="morph-label">Q 版 · 日常</div>
+    </div>
+    <div class="morph-arrow">⟶</div>
+    <div class="morph-col">
+      <svg width="170" height="170" viewBox="0 0 220 220">
+        <defs>
+          <linearGradient id="metalX" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3a4052"/><stop offset=".6" stop-color="#222636"/><stop offset="1" stop-color="#14161f"/>
+          </linearGradient>
+          <radialGradient id="coreX"><stop offset="0" stop-color="#eafff3"/><stop offset=".4" stop-color="#7dffa8"/><stop offset="1" stop-color="#7dffa8" stop-opacity="0"/></radialGradient>
+          <filter id="glowX" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g stroke="#4a5064" stroke-width="1.5">
+          <rect x="68" y="144" width="18" height="13" rx="4" fill="url(#metalX)"/>
+          <circle cx="77" cy="158" r="5.5" fill="#262a3a" stroke="#7dffa8" stroke-width="1.2"/>
+          <rect x="72" y="162" width="10" height="24" rx="3" fill="url(#metalX)"/>
+          <path d="M66 186 L77 176 L88 186" fill="none" stroke="#7dffa8" stroke-width="1.5"/>
+          <rect x="124" y="144" width="18" height="13" rx="4" fill="url(#metalX)"/>
+          <circle cx="133" cy="158" r="5.5" fill="#262a3a" stroke="#7dffa8" stroke-width="1.2"/>
+          <rect x="128" y="162" width="10" height="24" rx="3" fill="url(#metalX)"/>
+          <path d="M122 186 L133 176 L144 186" fill="none" stroke="#7dffa8" stroke-width="1.5"/>
+        </g>
+        <g>
+          <rect x="34" y="54" width="15" height="46" rx="6" fill="url(#metalX)" stroke="#4a5064" stroke-width="1.5" transform="rotate(10 41 76)"/>
+          <rect x="38" y="96" width="12" height="30" rx="5" fill="#2c3244" stroke="#555" stroke-width="1.2" transform="rotate(10 44 110)"/>
+          <path d="M36 126 L30 140 M41 128 L41 144 M46 126 L52 140" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(10 41 130)"/>
+          <rect x="171" y="54" width="15" height="46" rx="6" fill="url(#metalX)" stroke="#4a5064" stroke-width="1.5" transform="rotate(-10 178 76)"/>
+          <rect x="170" y="96" width="12" height="30" rx="5" fill="#2c3244" stroke="#555" stroke-width="1.2" transform="rotate(-10 176 110)"/>
+          <path d="M168 126 L162 140 M173 128 L173 144 M178 126 L184 140" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(-10 173 130)"/>
+        </g>
+        <path d="M58 32 L162 32 L178 48 L178 146 L162 162 L58 162 L42 146 L42 48 Z" fill="url(#metalX)" stroke="#7dffa8" stroke-width="2"/>
+        <path d="M42 48 L178 48" stroke="#7dffa8" stroke-width="1.2" opacity=".7"/>
+        <circle cx="110" cy="104" r="18" fill="url(#coreX)" opacity=".35"/>
+        <circle cx="110" cy="104" r="11" fill="url(#coreX)" opacity=".7" filter="url(#glowX)"/>
+        <circle cx="110" cy="104" r="5" fill="#eafff3"/>
+        <g filter="url(#glowX)">
+          <path d="M62 74 L84 70 L84 84 L62 80 Z" fill="#7dffa8"/>
+          <path d="M136 70 L158 74 L158 80 L136 84 Z" fill="#7dffa8"/>
+        </g>
+        <path d="M94 128 L110 136 L126 128" stroke="#7dffa8" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="morph-label">赛博义体 · 危险模式</div>
+    </div>
+  </div>
+  <p style="text-align:center; color:#888; font-size:13px; margin-top:8px;">
+    "日常是萌的，认真起来是这一身。" —— 这就是反差。
+  </p>
+</div>
+
+<div class="footnote">
+  定稿设计语言：<br>
+  · Q 版（日常）：圆角 0 形 · 薄荷绿描边 · 呆萌圆眼 · 短圆四肢 —— 陪伴形态<br>
+  · 赛博义体（危险）：切角 0 形 · 薄荷绿线缝 · 锐利发光眼 · 机械爪 · 能量核心 —— 执行形态<br>
+  · 同一配色体系（#7dffa8 薄荷绿）＝ 变的是形态，不变的是我<br>
+  · 触发：危险审批 / 重要时刻（任务完成展示成果）自动切换，闪白+画风断裂，切完若无其事<br>
+  · 下一步：两套 SVG 组件化进 zero-pet 项目，状态机加 danger 态
+</div>
+
+</body>
+</html>

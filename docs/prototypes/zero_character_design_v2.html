@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>零 · 形象设计稿 v2（有四肢的 Agent）</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei",sans-serif; background:#12121e; color:#eaeaea; padding:40px; }
+  h1 { font-size:24px; margin-bottom:6px; }
+  .sub { color:#888; font-size:13px; margin-bottom:30px; }
+  h2 { font-size:16px; margin:30px 0 14px; color:#aaa; border-left:3px solid #7dffa8; padding-left:10px; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4, 230px); gap:20px; }
+  @media (max-width:1100px){ .grid-4{ grid-template-columns:repeat(2,230px);} }
+  .card { background:#1c1c2e; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px; text-align:center; position:relative; }
+  .card .name { font-size:13px; margin-top:8px; color:#ccc; }
+  .card .desc { font-size:11px; color:#666; margin-top:4px; }
+  .tag { position:absolute; top:10px; right:10px; font-size:10px; padding:2px 8px; border-radius:10px; background:rgba(125,255,168,.15); color:#7dffa8; }
+  svg { display:block; margin:0 auto; }
+  .row { display:flex; gap:20px; flex-wrap:wrap; }
+  .outfit-card { width:230px; }
+
+  /* ==== 基础身体（0形圆角方块 + 四肢）==== */
+  .limb { transition: transform .4s ease; }
+  /* 空闲呼吸 */
+  .card.idle .body { animation: breathe 3s ease-in-out infinite; }
+  @keyframes breathe { 0%,100%{transform:translateY(0);} 50%{transform:translateY(2px);} }
+
+  /* 思考：手托下巴 + 冒泡 */
+  .card.thinking .arm-r { transform: rotate(-28deg); }
+  .card.thinking .arm-l { transform: rotate(14deg); }
+  .card.thinking .bubble { animation: rise 1.2s infinite; opacity:0; }
+  .card.thinking .bubble.b2 { animation-delay:.3s; }
+  .card.thinking .bubble.b3 { animation-delay:.6s; }
+  @keyframes rise { 0%{opacity:0; transform:translateY(6px);} 40%{opacity:1;} 100%{opacity:0; transform:translateY(-10px);} }
+
+  /* 工作：双手敲键盘 + 冒汗 */
+  .card.working .arm-r { animation: tap-r .45s infinite alternate; transform-origin:22px 6px; }
+  .card.working .arm-l { animation: tap-l .45s infinite alternate; transform-origin:22px 6px; }
+  @keyframes tap-r { from{transform:rotate(-16deg);} to{transform:rotate(4deg);} }
+  @keyframes tap-l { from{transform:rotate(16deg);} to{transform:rotate(-4deg);} }
+  .card.working .sweat { animation: drop 1.6s infinite; }
+  @keyframes drop { 0%{opacity:0; transform:translateY(0);} 30%{opacity:1;} 100%{opacity:0; transform:translateY(14px);} }
+
+  /* 完成：双手举起 + 跳跃 + 星光 */
+  .card.done .arm-r { transform: rotate(-70deg); }
+  .card.done .arm-l { transform: rotate(70deg); }
+  .card.done .whole { animation: jump .9s ease infinite; }
+  @keyframes jump { 0%,100%{transform:translateY(0);} 25%{transform:translateY(-18px);} 50%{transform:translateY(0);} 75%{transform:translateY(-9px);} }
+  .card.done .leg-r { transform: rotate(12deg); }
+  .card.done .leg-l { transform: rotate(-12deg); }
+  .card.done .spark { animation: twinkle 1s infinite; }
+  .card.done .spark.s2 { animation-delay:.3s; }
+  .card.done .spark.s3 { animation-delay:.6s; }
+  @keyframes twinkle { 0%,100%{opacity:0; transform:scale(.5);} 50%{opacity:1; transform:scale(1.2);} }
+</style>
+</head>
+<body>
+
+<h1>⬡ 零 · 形象设计稿 v2（Agent 形态）</h1>
+<div class="sub">"0"形身体 + 四肢 = 能行动的 Agent。概念不变：虚空容器，但现在是会走到你身边干活的执行者。</div>
+
+<h2>四态（肢体语言 + 表情 + 动作）</h2>
+<div class="grid-4">
+
+<!-- ════════ 空闲 ════════ -->
+<div class="card idle">
+  <span class="tag">空闲</span>
+  <svg width="180" height="180" viewBox="0 0 180 180">
+    <g class="whole">
+      <!-- 双腿 -->
+      <g class="limb leg-l"><rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+      <g class="limb leg-r"><rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+      <!-- 双臂（自然下垂） -->
+      <g class="limb arm-l" style="transform-origin:58px 40px"><rect x="34" y="38" width="14" height="46" rx="7" fill="#2a2a3e" transform="rotate(10 41 60)"/></g>
+      <g class="limb arm-r" style="transform-origin:122px 40px"><rect x="132" y="38" width="14" height="46" rx="7" fill="#2a2a3e" transform="rotate(-10 139 60)"/></g>
+      <!-- 身体 -->
+      <rect class="body" x="42" y="26" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+      <!-- 眼睛半垂 -->
+      <ellipse cx="68" cy="68" rx="9" ry="6" fill="#eaeaea" opacity=".85"/>
+      <ellipse cx="112" cy="68" rx="9" ry="6" fill="#eaeaea" opacity=".85"/>
+      <!-- 平和小嘴 -->
+      <path d="M80 94 Q90 89 100 94" stroke="#eaeaea" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".6"/>
+    </g>
+  </svg>
+  <div class="name">空 · 站岗</div>
+  <div class="desc">四肢放松站立，缓缓呼吸</div>
+</div>
+
+<!-- ════════ 思考 ════════ -->
+<div class="card thinking">
+  <span class="tag">思考</span>
+  <svg width="180" height="180" viewBox="0 0 180 180">
+    <g class="whole">
+      <g class="limb leg-l"><rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+      <g class="limb leg-r"><rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+      <!-- 左臂叉腰，右臂托下巴 -->
+      <g class="limb arm-l"><rect x="30" y="44" width="14" height="44" rx="7" fill="#2a2a3e" transform="rotate(-18 37 60)"/></g>
+      <g class="limb arm-r"><rect x="132" y="46" width="14" height="50" rx="7" fill="#2a2a3e"/></g>
+      <!-- 托下巴的手 -->
+      <circle cx="139" cy="98" r="9" fill="#2a2a3e"/>
+      <rect x="42" y="26" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+      <!-- 眼睛上飘 -->
+      <ellipse cx="68" cy="66" rx="9" ry="9" fill="#eaeaea"/>
+      <ellipse cx="112" cy="66" rx="9" ry="9" fill="#eaeaea"/>
+      <circle cx="70" cy="62" r="3.5" fill="#12121e"/>
+      <circle cx="114" cy="62" r="3.5" fill="#12121e"/>
+      <path d="M82 92 Q90 88 98 92" stroke="#eaeaea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- 冒泡 -->
+      <circle class="bubble b3" cx="26" cy="34" r="4" fill="#7dffa8"/>
+      <circle class="bubble b2" cx="34" cy="20" r="6" fill="#7dffa8"/>
+      <circle class="bubble b1" cx="46" cy="8" r="9" fill="#7dffa8"/>
+    </g>
+  </svg>
+  <div class="name">思考中</div>
+  <div class="desc">一手托腮，眼珠上飘，冒泡</div>
+</div>
+
+<!-- ════════ 工作 ════════ -->
+<div class="card working">
+  <span class="tag">工作</span>
+  <svg width="180" height="180" viewBox="0 0 180 180">
+    <g class="whole">
+      <g class="limb leg-l"><rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+      <g class="limb leg-r"><rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+      <!-- 双手在键盘上（垂直，敲击动画） -->
+      <g class="limb arm-l"><rect x="38" y="70" width="13" height="34" rx="6.5" fill="#2a2a3e"/></g>
+      <g class="limb arm-r"><rect x="128" y="70" width="13" height="34" rx="6.5" fill="#2a2a3e"/></g>
+      <!-- 键盘 -->
+      <rect x="52" y="104" width="76" height="26" rx="7" fill="#2a2a3e" stroke="#555" stroke-width="1.5"/>
+      <rect x="60" y="111" width="9" height="9" rx="2" fill="#7dffa8" opacity=".5"/>
+      <rect x="73" y="111" width="9" height="9" rx="2" fill="#7dffa8" opacity=".5"/>
+      <rect x="86" y="111" width="9" height="9" rx="2" fill="#7dffa8" opacity=".5"/>
+      <rect x="99" y="111" width="9" height="9" rx="2" fill="#7dffa8" opacity=".5"/>
+      <rect x="42" y="22" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+      <!-- 专注眼 -->
+      <ellipse cx="68" cy="64" rx="10" ry="5.5" fill="#eaeaea"/>
+      <ellipse cx="112" cy="64" rx="10" ry="5.5" fill="#eaeaea"/>
+      <circle cx="69" cy="64" r="3.5" fill="#12121e"/>
+      <circle cx="113" cy="64" r="3.5" fill="#12121e"/>
+      <path d="M82 88 L90 82 L98 88" stroke="#eaeaea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- 冒汗 -->
+      <path class="sweat" d="M136 34 Q140 42 136 50" stroke="#8ab4ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+  </svg>
+  <div class="name">干活中</div>
+  <div class="desc">双手敲键盘，专注眼，冒汗</div>
+</div>
+
+<!-- ════════ 完成 ════════ -->
+<div class="card done">
+  <span class="tag">完成</span>
+  <svg width="180" height="180" viewBox="0 0 180 180">
+    <g class="whole">
+      <!-- 跳跃腿 -->
+      <g class="limb leg-l"><rect x="58" y="118" width="16" height="28" rx="8" fill="#2a2a3e" transform="rotate(-10 66 132)"/></g>
+      <g class="limb leg-r"><rect x="106" y="118" width="16" height="28" rx="8" fill="#2a2a3e" transform="rotate(10 114 132)"/></g>
+      <!-- 双手举起 -->
+      <g class="limb arm-l"><rect x="30" y="14" width="14" height="40" rx="7" fill="#2a2a3e" transform="rotate(28 37 34)"/></g>
+      <g class="limb arm-r"><rect x="136" y="14" width="14" height="40" rx="7" fill="#2a2a3e" transform="rotate(-28 143 34)"/></g>
+      <!-- 小手（张开） -->
+      <circle cx="28" cy="14" r="8" fill="#2a2a3e"/>
+      <circle cx="152" cy="14" r="8" fill="#2a2a3e"/>
+      <rect x="42" y="26" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#ffd166" stroke-width="3"/>
+      <!-- 月牙眼 -->
+      <path d="M56 68 Q66 56 76 68" stroke="#ffd166" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M104 68 Q114 56 124 68" stroke="#ffd166" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M78 86 Q90 98 102 86 Z" fill="#ffd166"/>
+      <!-- 星光 -->
+      <rect class="spark s1" x="14" y="52" width="5" height="12" rx="2" fill="#ffd166"/>
+      <rect class="spark s2" x="158" y="78" width="5" height="12" rx="2" fill="#ffd166"/>
+      <rect class="spark s3" x="24" y="110" width="5" height="12" rx="2" fill="#ffd166"/>
+    </g>
+  </svg>
+  <div class="name">完成！</div>
+  <div class="desc">双手高举，跳跃，星光金</div>
+</div>
+</div>
+
+<h2>衣柜 v2（四肢让装扮更有戏）</h2>
+<div class="row">
+
+<!-- 默认 -->
+<div class="card outfit-card">
+  <span class="tag">默认</span>
+  <svg width="170" height="170" viewBox="0 0 180 180">
+    <g class="limb leg-l"><rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb leg-r"><rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb arm-l"><rect x="34" y="40" width="14" height="44" rx="7" fill="#2a2a3e" transform="rotate(10 41 60)"/></g>
+    <g class="limb arm-r"><rect x="132" y="40" width="14" height="44" rx="7" fill="#2a2a3e" transform="rotate(-10 139 60)"/></g>
+    <rect x="42" y="26" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+    <ellipse cx="68" cy="66" rx="9" ry="8" fill="#eaeaea"/><ellipse cx="112" cy="66" rx="9" ry="8" fill="#eaeaea"/>
+    <circle cx="70" cy="64" r="3.5" fill="#12121e"/><circle cx="114" cy="64" r="3.5" fill="#12121e"/>
+    <path d="M82 92 Q90 87 98 92" stroke="#eaeaea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </svg>
+  <div class="name">裸零</div>
+  <div class="desc">四肢健在的出厂形态</div>
+</div>
+
+<!-- 极客 -->
+<div class="card outfit-card">
+  <span class="tag">极客</span>
+  <svg width="170" height="170" viewBox="0 0 180 180">
+    <g class="limb leg-l"><rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb leg-r"><rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb arm-l"><rect x="32" y="40" width="15" height="46" rx="7.5" fill="#1b2636" transform="rotate(10 40 62)"/></g>
+    <g class="limb arm-r"><rect x="133" y="40" width="15" height="46" rx="7.5" fill="#1b2636" transform="rotate(-10 140 62)"/></g>
+    <!-- 连帽衫身体 -->
+    <rect x="42" y="26" width="96" height="96" rx="32" fill="#24324a" stroke="#8ab4ff" stroke-width="3"/>
+    <path d="M46 42 Q90 20 134 42 L130 72 L50 72 Z" fill="#1b2636"/>
+    <!-- 圆框眼镜 -->
+    <circle cx="68" cy="66" r="12" fill="none" stroke="#8ab4ff" stroke-width="2.5"/>
+    <circle cx="112" cy="66" r="12" fill="none" stroke="#8ab4ff" stroke-width="2.5"/>
+    <line x1="80" y1="66" x2="100" y2="66" stroke="#8ab4ff" stroke-width="2.5"/>
+    <circle cx="70" cy="66" r="3.5" fill="#eaeaea"/><circle cx="114" cy="66" r="3.5" fill="#eaeaea"/>
+    <path d="M82 92 Q90 87 98 92" stroke="#eaeaea" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </svg>
+  <div class="name">极客零</div>
+  <div class="desc">连帽衫 + 圆框眼镜</div>
+</div>
+
+<!-- 工装 -->
+<div class="card outfit-card">
+  <span class="tag">工装</span>
+  <svg width="170" height="170" viewBox="0 0 180 180">
+    <g class="limb leg-l"><rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb leg-r"><rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <!-- 右手拿扳手 -->
+    <g class="limb arm-r"><rect x="132" y="40" width="14" height="40" rx="7" fill="#2a2a3e" transform="rotate(-20 139 58)"/></g>
+    <g class="limb arm-l"><rect x="34" y="40" width="14" height="44" rx="7" fill="#2a2a3e" transform="rotate(10 41 60)"/></g>
+    <rect x="42" y="26" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#7dffa8" stroke-width="3"/>
+    <!-- 领带 -->
+    <path d="M82 52 L92 62 L82 94 L72 62 Z" fill="#d9643a"/>
+    <rect x="78" y="44" width="24" height="10" rx="4" fill="#eaeaea"/>
+    <!-- 护目镜 -->
+    <ellipse cx="68" cy="64" rx="12" ry="8" fill="none" stroke="#ffd166" stroke-width="2.5"/>
+    <ellipse cx="112" cy="64" rx="12" ry="8" fill="none" stroke="#ffd166" stroke-width="2.5"/>
+    <circle cx="70" cy="64" r="3.5" fill="#eaeaea"/><circle cx="114" cy="64" r="3.5" fill="#eaeaea"/>
+    <!-- 扳手 -->
+    <g transform="rotate(35 145 52)">
+      <rect x="140" y="44" width="8" height="30" rx="3" fill="#c9d1d9"/>
+      <circle cx="144" cy="42" r="7" fill="none" stroke="#c9d1d9" stroke-width="4"/>
+    </g>
+  </svg>
+  <div class="name">工装零</div>
+  <div class="desc">护目镜 + 领带 + 扳手</div>
+</div>
+
+<!-- 陪伴 -->
+<div class="card outfit-card">
+  <span class="tag">陪伴</span>
+  <svg width="170" height="170" viewBox="0 0 180 180">
+    <g class="limb leg-l"><rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb leg-r"><rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb arm-l"><rect x="34" y="40" width="14" height="42" rx="7" fill="#2a2a3e" transform="rotate(12 41 60)"/></g>
+    <!-- 右手挥手 -->
+    <g class="limb arm-r"><rect x="132" y="30" width="14" height="40" rx="7" fill="#2a2a3e" transform="rotate(-30 139 48)"/></g>
+    <circle cx="149" cy="24" r="8" fill="#2a2a3e"/>
+    <rect x="42" y="26" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#e07a9e" stroke-width="3"/>
+    <!-- 围巾 -->
+    <path d="M48 84 Q90 98 132 84 L132 94 Q90 108 48 94 Z" fill="#e07a9e"/>
+    <rect x="78" y="92" width="24" height="20" rx="5" fill="#c55d84"/>
+    <ellipse cx="68" cy="64" rx="9" ry="8" fill="#eaeaea"/><ellipse cx="112" cy="64" rx="9" ry="8" fill="#eaeaea"/>
+    <circle cx="70" cy="62" r="3.5" fill="#12121e"/><circle cx="114" cy="62" r="3.5" fill="#12121e"/>
+    <path d="M80 86 Q90 80 100 86" stroke="#eaeaea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </svg>
+  <div class="name">陪伴零</div>
+  <div class="desc">红围巾 + 挥手打招呼</div>
+</div>
+
+<!-- 节日 -->
+<div class="card outfit-card">
+  <span class="tag">节日</span>
+  <svg width="170" height="170" viewBox="0 0 180 180">
+    <g class="limb leg-l"><rect x="58" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb leg-r"><rect x="106" y="118" width="16" height="30" rx="8" fill="#2a2a3e"/></g>
+    <g class="limb arm-l"><rect x="34" y="40" width="14" height="44" rx="7" fill="#2a2a3e" transform="rotate(10 41 60)"/></g>
+    <g class="limb arm-r"><rect x="132" y="40" width="14" height="44" rx="7" fill="#2a2a3e" transform="rotate(-10 139 60)"/></g>
+    <rect x="42" y="26" width="96" height="96" rx="32" fill="#1c1c2e" stroke="#ff6b6b" stroke-width="3"/>
+    <!-- 圣诞帽 -->
+    <path d="M50 44 Q90 14 130 44 L126 56 Q90 30 54 56 Z" fill="#ff6b6b"/>
+    <circle cx="90" cy="20" r="8" fill="#fff"/>
+    <rect x="46" y="50" width="88" height="13" rx="6.5" fill="#fff" opacity=".9"/>
+    <ellipse cx="68" cy="66" rx="9" ry="8" fill="#eaeaea"/><ellipse cx="112" cy="66" rx="9" ry="8" fill="#eaeaea"/>
+    <circle cx="70" cy="64" r="3.5" fill="#12121e"/><circle cx="114" cy="64" r="3.5" fill="#12121e"/>
+    <path d="M82 92 Q90 87 98 92" stroke="#eaeaea" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </svg>
+  <div class="name">节日零</div>
+  <div class="desc">圣诞帽（节日限定）</div>
+</div>
+</div>
+
+<div class="footnote" style="margin-top:40px; color:#555; font-size:12px; line-height:2;">
+  v2 改动：<br>
+  · 新增四肢——双臂（可旋转做动作）+ 双腿（站姿/跳跃），"0"形身体概念保留<br>
+  · 四态改为肢体语言主导：站岗(空闲) / 托腮(思考) / 敲键盘(工作) / 高举跳跃(完成)<br>
+  · 衣柜升级：工装加扳手、陪伴加挥手动作——装扮不只是装饰，带行为<br>
+  · 四肢颜色 #2a2a3e（深灰）与身体 #1c1c2e 同系，视觉一体<br>
+  · 关节用 transform-origin + rotate，CSS 动画可驱动——符合 Tauri 组件化需求
+</div>
+</body>
+</html>
