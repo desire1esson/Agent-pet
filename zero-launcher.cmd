@@ -45,10 +45,11 @@ if %errorlevel%==0 (
     where hermes >nul 2>nul
     if %errorlevel%==0 (
         for /f "usebackq delims=" %%t in ('powershell -NoProfile -Command "try{$j=Get-Content '%CFG%' -Raw|ConvertFrom-Json; $j.token}catch{''}"') do set "TOK=%%t"
+        rem 补 Hermes 的 node 到 PATH（hermes serve 内部需要 node）——注意 set 尾随空格坑
         if not "%TOK%"=="" (
-            start "Hermes Serve" cmd /c "set HERMES_DASHBOARD_SESSION_TOKEN=%TOK% && hermes serve --skip-build"
+            start "Hermes Serve" cmd /c "set PATH=%LOCALAPPDATA%\hermes\node;%PATH%&& set HERMES_DASHBOARD_SESSION_TOKEN=%TOK%&& hermes serve --skip-build"
         ) else (
-            start "Hermes Serve" cmd /c "hermes serve --skip-build"
+            start "Hermes Serve" cmd /c "set PATH=%LOCALAPPDATA%\hermes\node;%PATH%&& hermes serve --skip-build"
         )
         echo  ✅ hermes serve 已启动（新窗口）——等它 READY 后打开桌宠即可
     ) else (
